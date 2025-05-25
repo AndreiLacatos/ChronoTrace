@@ -19,7 +19,8 @@ internal static class IncrementalValueProviderExtensions
         return valueProvider.Combine(loggerProvider);
     }
 
-    internal static IncrementalValueProvider<Logger> CreateLoggerProvider(this IncrementalValueProvider<AnalyzerConfigOptionsProvider> valueProvider)
+    internal static IncrementalValueProvider<Logger> CreateLoggerProvider(
+        this IncrementalValueProvider<AnalyzerConfigOptionsProvider> valueProvider)
     {
         return valueProvider.Select((provider, _) =>
         {

@@ -2,3 +2,4 @@
 
 var subject = new Subject();
 subject.PerformAction();
+subject.PerformAction();

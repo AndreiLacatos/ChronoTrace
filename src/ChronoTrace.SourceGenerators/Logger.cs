@@ -50,6 +50,7 @@ internal sealed class Logger
             _flushed = true;
         }
         File.AppendAllText(_logPath, _messageBuilder.ToString());
+        _messageBuilder.Clear();
         _semaphoreSlim.Release();
 #endif
     }
