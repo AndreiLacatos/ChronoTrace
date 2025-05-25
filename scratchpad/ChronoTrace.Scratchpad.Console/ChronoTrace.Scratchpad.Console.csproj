@@ -7,6 +7,7 @@
         <Nullable>enable</Nullable>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
         <ChronoTraceGeneratorsLogLevel>Debug</ChronoTraceGeneratorsLogLevel> <!-- Available levels: Trace, Debug, Info, Warning, Error -->
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);ProfilingInterceptors</InterceptorsNamespaces>
     </PropertyGroup>
 
     <ItemGroup>

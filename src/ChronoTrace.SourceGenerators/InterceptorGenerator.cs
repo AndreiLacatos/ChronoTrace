@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace ChronoTrace.SourceGenerators;
 
@@ -18,17 +20,23 @@ public class InterceptorGenerator : IIncrementalGenerator
                 SelectAttributedMethods(context.SyntaxProvider)))
             .EnrichWithLogger(loggerProvider);
 
-        context.RegisterSourceOutput(trackedMethodInvocations, (_, enrichedInvocation) =>
+        context.RegisterPostInitializationOutput(ctx =>
         {
-            var (interceptableInvocation, logger) = enrichedInvocation;
-            logger.Info($"Tracking invocation of {interceptableInvocation.TargetMethod.Name}");
-            foreach (var location in interceptableInvocation.Locations)
-            {
-                logger.Info($"\tInvoked at {location.InvocationLocation.SourceTree?.FilePath ?? "Unknown file"}" +
-                    $" {location.InvocationLocation.GetLineSpan().Span}");
-            }
-            logger.Flush();
+            ctx.AddSource(
+                "ChronoTrace.CompilerUtilities.g.cs",
+                """
+                namespace System.Runtime.CompilerServices;
+
+                [global::System.Diagnostics.Conditional("DEBUG")]
+                [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+                #pragma warning disable CS9113 // ignore warning thrown for unread parameters
+                public sealed class InterceptsLocationAttribute(int version, string data) : global::System.Attribute;
+                #pragma warning restore CS9113
+                """
+            );
         });
+
+        context.RegisterSourceOutput(trackedMethodInvocations, GenerateInterceptors);
     }
 
     private static IncrementalValueProvider<ImmutableHashSet<ISymbol>> SelectAttributedMethods(SyntaxValueProvider syntaxProvider)
@@ -117,5 +125,163 @@ public class InterceptorGenerator : IIncrementalGenerator
                     (IMethodSymbol)group.Key!,
                     group.Select(item => (item.Location, item.InterceptableLocation))))
             );
+    }
+
+    private static void GenerateInterceptors(
+        SourceProductionContext context,
+        (InterceptableMethodInvocations, Logger) enrichedInvocation)
+    {
+        var (interceptableInvocation, logger) = enrichedInvocation;
+        var className = interceptableInvocation.TargetMethod.ContainingType.Name;
+        var methodName = interceptableInvocation.TargetMethod.Name;
+        logger.Info($"Generating interceptor for {className}.{methodName}");
+
+        // add necessary using statements
+        // add using System.Runtime.CompilerServices; required by InterceptsLocation attribute
+        var compilationUnit = CompilationUnit()
+            .WithUsings(
+                SingletonList(
+                    UsingDirective(
+                        QualifiedName(
+                            QualifiedName(
+                                IdentifierName("System"),
+                                IdentifierName("Runtime")),
+                            IdentifierName("CompilerServices")))));
+
+        // create class declaration
+        var classDeclaration = ClassDeclaration($"{className}ProfilingInterceptorExtensions");
+
+        // make it public & static
+        classDeclaration = classDeclaration
+            .WithModifiers(
+                TokenList(
+                    Token(SyntaxKind.PublicKeyword),
+                    Token(SyntaxKind.StaticKeyword)));
+
+        // add a static method which handles target method interception
+        // make its return tpe void
+        // TODO: copy return type of the intercepted method
+        var interceptorMethod = MethodDeclaration(
+            PredefinedType(
+                Token(SyntaxKind.VoidKeyword)),
+            Identifier($"Intercept{methodName}"));
+
+        // make the method public & static
+        interceptorMethod = interceptorMethod.WithModifiers(TokenList(
+                Token(SyntaxKind.PublicKeyword),
+                Token(SyntaxKind.StaticKeyword)));
+        
+        // add parameters, the first is always the extended type
+        // "this SubjectClass subject"
+        // TODO: add remaining parameters, inherited from the target method
+        var fullyQualifiedClassName = interceptableInvocation
+            .TargetMethod
+            .ContainingType
+            .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        interceptorMethod = interceptorMethod.WithParameterList(
+            ParameterList(
+                SeparatedList<ParameterSyntax>(
+                    new SyntaxNodeOrToken[]
+                    {
+                        Parameter(Identifier("subject"))
+                            .WithModifiers(
+                                TokenList(
+                                    Token(SyntaxKind.ThisKeyword)))
+                            .WithType(
+                                IdentifierName(fullyQualifiedClassName)),
+                        /*Token(SyntaxKind.CommaToken),
+                        Parameter(
+                                Identifier("parameter"))
+                            .WithType(
+                                PredefinedType(
+                                    Token(SyntaxKind.StringKeyword)))*/
+                    })));
+        
+        // add the method body, which does the following:
+        // 1. Console.WriteLine("Intercepted!");
+        // 2. invokes the target method
+        var consoleLogStatement = ExpressionStatement(
+            InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("Console"),
+                        IdentifierName("WriteLine")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList(
+                            Argument(
+                                LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    Literal("Intercepted!")))))));
+
+        // TODO: forward any parameters
+        var proxyCall = ExpressionStatement(
+            InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName("subject"),
+                        IdentifierName(methodName))));
+
+        interceptorMethod = interceptorMethod.WithBody(Block(
+            consoleLogStatement,
+            proxyCall));
+        
+        // create an InterceptsLocation for each invocation location of the target method
+        var attributes = new List<AttributeListSyntax>();
+        foreach (var location in interceptableInvocation.Locations)
+        {
+            var attribute = Attribute(
+                    IdentifierName("InterceptsLocation"))
+                .WithArgumentList(
+                    AttributeArgumentList(
+                        SeparatedList<AttributeArgumentSyntax>(
+                            new SyntaxNodeOrToken[]
+                            {
+                                AttributeArgument(
+                                        LiteralExpression(
+                                            SyntaxKind.NumericLiteralExpression,
+                                            Literal(location.InterceptableLocation.Version)))
+                                    .WithNameColon(
+                                        NameColon(
+                                            IdentifierName(
+                                                "version"))),
+                                Token(SyntaxKind.CommaToken),
+                                AttributeArgument(
+                                        LiteralExpression(
+                                            SyntaxKind.StringLiteralExpression,
+                                            Literal(location.InterceptableLocation.Data)))
+                                    .WithNameColon(
+                                        NameColon(
+                                            IdentifierName(
+                                                "data"))),
+                            })));
+            attributes.Add(
+                AttributeList(
+                    SingletonSeparatedList(attribute)
+                )
+            );
+        }
+
+        // use the attributes to annotate the interceptor method
+        interceptorMethod = interceptorMethod.WithAttributeLists(List(attributes));
+
+        // add the method to the class
+        classDeclaration = classDeclaration.WithMembers(
+            SingletonList<MemberDeclarationSyntax>(interceptorMethod));
+
+        // create a file scoped namespace declaration
+        var namespaceDeclaration = FileScopedNamespaceDeclaration(IdentifierName("ProfilingInterceptors"));
+
+        // add the namespace & the class
+        compilationUnit = compilationUnit
+            .WithMembers(SingletonList<MemberDeclarationSyntax>(
+                namespaceDeclaration.WithMembers(SingletonList<MemberDeclarationSyntax>(classDeclaration))));
+
+        var generatedSources = compilationUnit
+            .NormalizeWhitespace()
+            .GetText(Encoding.UTF8);
+
+        logger.Flush();
+        context.AddSource($"{className}_{methodName}_ProfilingInterceptors.g.cs", generatedSources);
     }
 }
