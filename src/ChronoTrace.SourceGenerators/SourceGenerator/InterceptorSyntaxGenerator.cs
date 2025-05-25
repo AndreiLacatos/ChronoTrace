@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using SymbolDisplayFormat = Microsoft.CodeAnalysis.SymbolDisplayFormat;
 
 namespace ChronoTrace.SourceGenerators.SourceGenerator;
 
@@ -45,7 +44,7 @@ internal class InterceptorSyntaxGenerator
         var classDeclaration = MakeClassDeclaration(invocations);
 
         // add a static method which handles target method interception
-        var interceptorMethod = MakeInterceptorHandler(invocations, methodName);
+        var interceptorMethod = MakeInterceptorHandler(invocations);
 
         // annotate it with InterceptsLocations attribute(s)
         interceptorMethod = AddInterceptorAttributes(invocations, interceptorMethod);
@@ -80,15 +79,30 @@ internal class InterceptorSyntaxGenerator
         return classDeclaration;
     }
     
-    private MethodDeclarationSyntax MakeInterceptorHandler(
-        InterceptableMethodInvocations invocations,
-        string methodName)
+    private MethodDeclarationSyntax MakeInterceptorHandler(InterceptableMethodInvocations invocations)
     {
-        // make its return type void
-        // TODO: copy return type of the intercepted method
+        // make its return type the same as the intercepted method
+        var returnTypeSymbol = invocations.TargetMethod.ReturnType;
+        TypeSyntax returnTypeSyntax;
+
+        var symbolDisplayFormat = new SymbolDisplayFormat(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces
+        );
+
+        if (invocations.TargetMethod.ReturnsVoid)
+        {
+            returnTypeSyntax = PredefinedType(Token(SyntaxKind.VoidKeyword));
+        }
+        else
+        {
+            var returnTypeName = returnTypeSymbol.ToDisplayString(symbolDisplayFormat);
+
+            returnTypeSyntax = ParseTypeName(returnTypeName);
+        }
+
         var interceptorMethod = MethodDeclaration(
-            PredefinedType(
-                Token(SyntaxKind.VoidKeyword)),
+            returnTypeSyntax,
             Identifier(_interceptorHandlerNameProvider.GetHandlerName(invocations.TargetMethod)));
 
         // make the method public & static
@@ -97,30 +111,74 @@ internal class InterceptorSyntaxGenerator
             Token(SyntaxKind.StaticKeyword)));
         
         // add parameters, the first is always the extended type
-        // "this SubjectClass subject"
-        // TODO: add remaining parameters, inherited from the target method
-        var fullyQualifiedClassName = invocations
-            .TargetMethod
-            .ContainingType
-            .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        // "this SubjectClass subject", unless the intercepted method is static
+        var parameters = new List<ParameterSyntax>();
+        var syntaxNodeOrTokenList = new List<SyntaxNodeOrToken>();
+
+        if (!invocations.TargetMethod.IsStatic)
+        {
+            // get the fully qualified name of the containing type, i.e. parent class, of the method being intercepted.
+            var instanceTypeName = invocations.TargetMethod.ContainingType.ToDisplayString(symbolDisplayFormat);
+            parameters.Add(
+                Parameter(Identifier("subject"))
+                    .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
+                    .WithType(ParseTypeName(instanceTypeName))
+            );
+        }
+
+        // add remaining parameters inherited from the target method
+        foreach (var originalParameter in invocations.TargetMethod.Parameters)
+        {
+            // convert original parameter's type symbol to TypeSyntax
+            var paramTypeName = originalParameter.Type.ToDisplayString(symbolDisplayFormat);
+            var paramTypeSyntax = ParseTypeName(paramTypeName);
+
+            var parameterSyntax = Parameter(Identifier(originalParameter.Name))
+                .WithType(paramTypeSyntax);
+
+            // handle parameter modifiers (ref, out, in, params)
+            var modifiers = new List<SyntaxToken>();
+            switch (originalParameter.RefKind)
+            {
+                case RefKind.Ref:
+                    modifiers.Add(Token(SyntaxKind.RefKeyword));
+                    break;
+                case RefKind.Out:
+                    modifiers.Add(Token(SyntaxKind.OutKeyword));
+                    break;
+                case RefKind.In:
+                    modifiers.Add(Token(SyntaxKind.InKeyword));
+                    break;
+            }
+
+            if (originalParameter.IsParams)
+            {
+                modifiers.Add(Token(SyntaxKind.ParamsKeyword));
+            }
+
+            if (modifiers.Any())
+            {
+                parameterSyntax = parameterSyntax.WithModifiers(TokenList(modifiers));
+            }
+
+            parameters.Add(parameterSyntax);
+        }
+
+        // build a SeparatedList of parameters to pass to WithParameterList()
+        for (var i = 0; i < parameters.Count; i++)
+        {
+            syntaxNodeOrTokenList.Add(parameters[i]);
+            if (i < parameters.Count - 1)
+            {
+                syntaxNodeOrTokenList.Add(Token(SyntaxKind.CommaToken));
+            }
+        }
+        
         interceptorMethod = interceptorMethod.WithParameterList(
             ParameterList(
-                SeparatedList<ParameterSyntax>(
-                    new SyntaxNodeOrToken[]
-                    {
-                        Parameter(Identifier("subject"))
-                            .WithModifiers(
-                                TokenList(
-                                    Token(SyntaxKind.ThisKeyword)))
-                            .WithType(
-                                IdentifierName(fullyQualifiedClassName)),
-                        /*Token(SyntaxKind.CommaToken),
-                        Parameter(
-                                Identifier("parameter"))
-                            .WithType(
-                                PredefinedType(
-                                    Token(SyntaxKind.StringKeyword)))*/
-                    })));
+                SeparatedList<ParameterSyntax>(syntaxNodeOrTokenList)
+            )
+        );
         
         // add the method body, which does the following:
         // 1. Console.WriteLine("Intercepted!");
@@ -139,13 +197,45 @@ internal class InterceptorSyntaxGenerator
                                     SyntaxKind.StringLiteralExpression,
                                     Literal("Intercepted!")))))));
 
-        // TODO: forward any parameters
-        var proxyCall = ExpressionStatement(
-            InvocationExpression(
-                MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("subject"),
-                    IdentifierName(methodName))));
+        // make the proxy call, iterate through the parameters of the
+        // intercepted method and pass them to it
+        // create a list to hold the ArgumentSyntax nodes
+        var arguments = new List<ArgumentSyntax>();
+        foreach (var originalParamSymbol in invocations.TargetMethod.Parameters)
+        {
+            // create an argument using the parameter's name.
+            var argument = Argument(IdentifierName(originalParamSymbol.Name));
+
+            // handle parameter modifiers for the argument
+            switch (originalParamSymbol.RefKind)
+            {
+                case RefKind.Ref:
+                    argument = argument.WithRefKindKeyword(Token(SyntaxKind.RefKeyword));
+                    break;
+                case RefKind.Out:
+                    argument = argument.WithRefKindKeyword(Token(SyntaxKind.OutKeyword));
+                    break;
+                case RefKind.In:
+                    argument = argument.WithRefKindKeyword(Token(SyntaxKind.InKeyword));
+                    break;
+            }
+
+            arguments.Add(argument);
+        }
+
+        // construct the InvocationExpression with the arguments
+        var invocation = InvocationExpression(
+            MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                IdentifierName("subject"),
+                IdentifierName(invocations.TargetMethod.Name)
+            ))
+            .WithArgumentList(
+                ArgumentList(SeparatedList(arguments))
+            );
+        StatementSyntax proxyCall = invocations.TargetMethod.ReturnsVoid
+            ? ExpressionStatement(invocation)
+            : ReturnStatement(invocation);
 
         interceptorMethod = interceptorMethod.WithBody(Block(
             consoleLogStatement,
