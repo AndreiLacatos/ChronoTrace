@@ -61,7 +61,7 @@ internal sealed class Logger
         if (level >= _level)
         {
             _semaphoreSlim.Wait();
-            _messageBuilder.AppendLine($"[{DateTime.Now:yyyy/MM/dd hh:mm:ss.fff}] [{level}]: {message}");
+            _messageBuilder.AppendLine($"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] [{level}]: {message}");
             _semaphoreSlim.Release();
         }
 #endif

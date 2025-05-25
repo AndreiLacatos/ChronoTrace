@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace ChronoTrace.SourceGenerators;
+namespace ChronoTrace.SourceGenerators.DataStructures;
 
 #pragma warning disable RSEXPERIMENTAL002
 internal sealed record MethodInvocation(IMethodSymbol TargetMethod, Location Location, InterceptableLocation InterceptableLocation);
