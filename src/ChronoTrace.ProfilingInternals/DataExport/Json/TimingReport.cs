@@ -7,7 +7,7 @@ internal sealed class TimingReport
     internal sealed class MethodTiming
     {
         [JsonPropertyName("methodName")]
-        internal required string MethodName { get; init; }
+        public required string MethodName { get; init; }
 
         [JsonPropertyName("executionTime")]
         public required TimeSpan ExecutionTime { get; init; }
