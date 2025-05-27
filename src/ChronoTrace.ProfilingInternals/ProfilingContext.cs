@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using ChronoTrace.ProfilingInternals.DataExport;
 
 namespace ChronoTrace.ProfilingInternals;
 
@@ -6,11 +7,13 @@ public sealed class ProfilingContext
 {
     private readonly SemaphoreSlim _semaphore;
     private readonly List<ProfiledMethodInvocation> _methodCalls;
+    private readonly ITraceVisitor _visitor;
     private ushort _invocationCounter;
     private ushort _pendingCalls;
 
-    internal ProfilingContext()
+    internal ProfilingContext(ITraceVisitor visitor)
     {
+        _visitor = visitor;
         _invocationCounter = 0;
         _pendingCalls = 0;
         _methodCalls = new List<ProfiledMethodInvocation>(capacity: 100);
@@ -61,13 +64,12 @@ public sealed class ProfilingContext
             return;
         }
 
-        Console.WriteLine("Profiling scope finished, collecting traces");
+        _visitor.BeginVisit();
         for (var i = 0; i < _invocationCounter; i++)
         {
-            var invocation = _methodCalls[i];
-            var executionTime = Stopwatch.GetElapsedTime(invocation.InvocationTick, invocation.ReturnTick!.Value);
-            Console.WriteLine($"\t{invocation.MethodName} {executionTime}");
+            _visitor.VisitTrace(TraceAdapter.Adapt(_methodCalls[i]));
         }
+        _visitor.Complete();
         
         // reset state
         _invocationCounter = 0;
