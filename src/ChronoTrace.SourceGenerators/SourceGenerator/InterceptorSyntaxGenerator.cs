@@ -1,3 +1,4 @@
+using ChronoTrace.ProfilingInternals;
 using ChronoTrace.SourceGenerators.DataStructures;
 using ChronoTrace.SourceGenerators.SourceGenerator.NameProviders;
 using Microsoft.CodeAnalysis;
@@ -9,10 +10,15 @@ namespace ChronoTrace.SourceGenerators.SourceGenerator;
 
 internal class InterceptorSyntaxGenerator
 {
+    private const string ProfiledSubjectVariableName = "subject";
+    private const string InvocationIdVariableName = "methodInvocationId";
+    private const string ProfilingContextVariableName = "profilingContext";
+    
     private readonly Logger _logger;
     private readonly GeneratedNamespaceProvider _generatedNamespaceProvider;
     private readonly InterceptorClassNameProvider _interceptorClassNameProvider;
     private readonly InterceptorHandlerNameProvider _interceptorHandlerNameProvider;
+    private readonly GeneratedVariableNameConverter _variableNameConverter;
 
     internal InterceptorSyntaxGenerator(Logger logger)
     {
@@ -20,6 +26,7 @@ internal class InterceptorSyntaxGenerator
         _generatedNamespaceProvider = new GeneratedNamespaceProvider();
         _interceptorClassNameProvider = new InterceptorClassNameProvider();
         _interceptorHandlerNameProvider = new InterceptorHandlerNameProvider();
+        _variableNameConverter = new GeneratedVariableNameConverter();
     }
     
     internal CompilationUnitSyntax MakeMethodInterceptor(InterceptableMethodInvocations invocations)
@@ -36,9 +43,9 @@ internal class InterceptorSyntaxGenerator
                     UsingDirective(
                         QualifiedName(
                             QualifiedName(
-                                IdentifierName("System"),
-                                IdentifierName("Runtime")),
-                            IdentifierName("CompilerServices")))));
+                                IdentifierName(nameof(System)),
+                                IdentifierName(nameof(System.Runtime))),
+                            IdentifierName(nameof(System.Runtime.CompilerServices))))));
 
         // create class declaration
         var classDeclaration = MakeClassDeclaration(invocations);
@@ -120,7 +127,7 @@ internal class InterceptorSyntaxGenerator
             // get the fully qualified name of the containing type, i.e. parent class, of the method being intercepted.
             var instanceTypeName = invocations.TargetMethod.ContainingType.ToDisplayString(symbolDisplayFormat);
             parameters.Add(
-                Parameter(Identifier("subject"))
+                Parameter(Identifier(_variableNameConverter.ToGeneratedVariableName(ProfiledSubjectVariableName)))
                     .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
                     .WithType(ParseTypeName(instanceTypeName))
             );
@@ -179,23 +186,70 @@ internal class InterceptorSyntaxGenerator
                 SeparatedList<ParameterSyntax>(syntaxNodeOrTokenList)
             )
         );
-        
+
         // add the method body, which does the following:
-        // 1. Console.WriteLine("Intercepted!");
-        // 2. invokes the target method
-        var consoleLogStatement = ExpressionStatement(
-            InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName("Console"),
-                        IdentifierName("WriteLine")))
-                .WithArgumentList(
-                    ArgumentList(
-                        SingletonSeparatedList(
-                            Argument(
-                                LiteralExpression(
-                                    SyntaxKind.StringLiteralExpression,
-                                    Literal("Intercepted!")))))));
+        // 1. accesses the current profiling context
+        var contextVariableDefinition = LocalDeclarationStatement(
+            VariableDeclaration(
+                    IdentifierName(
+                        Identifier(
+                            TriviaList(),
+                            SyntaxKind.VarKeyword,
+                            "var",
+                            "var",
+                            TriviaList())))
+                .WithVariables(
+                    SingletonSeparatedList(
+                        VariableDeclarator(
+                                Identifier(_variableNameConverter.ToGeneratedVariableName(ProfilingContextVariableName)))
+                            .WithInitializer(
+                                EqualsValueClause(
+                                    MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                AliasQualifiedName(
+                                                    IdentifierName(
+                                                        Token(SyntaxKind.GlobalKeyword)),
+                                                    IdentifierName(nameof(ChronoTrace))),
+                                                IdentifierName(nameof(ProfilingInternals))),
+                                            IdentifierName(nameof(ProfilingContextAccessor))),
+                                        IdentifierName(nameof(ProfilingContextAccessor.Current))))))));
+
+        // 2. begins profiling the subject method
+        var beginMethodProfilingCall = InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName(_variableNameConverter.ToGeneratedVariableName(ProfilingContextVariableName)),
+                    IdentifierName(nameof(ProfilingContext.BeginMethodProfiling))))
+            .WithArgumentList(
+                ArgumentList(
+                    SingletonSeparatedList(
+                        Argument(
+                            LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                Literal(invocations.TargetMethod.Name))))));
+
+        // 3. captures the returned invocation ID
+        var methodProfilingStart = LocalDeclarationStatement(
+            VariableDeclaration(
+                    IdentifierName(
+                        Identifier(
+                            TriviaList(),
+                            SyntaxKind.VarKeyword,
+                            "var",
+                            "var",
+                            TriviaList())))
+                .WithVariables(
+                    SingletonSeparatedList(
+                        VariableDeclarator(
+                                Identifier(_variableNameConverter.ToGeneratedVariableName(InvocationIdVariableName)))
+                            .WithInitializer(
+                                EqualsValueClause(beginMethodProfilingCall)))));
+
+        // 4. wraps the proxied method call in a try-finally block
 
         // make the proxy call, iterate through the parameters of the
         // intercepted method and pass them to it
@@ -225,21 +279,47 @@ internal class InterceptorSyntaxGenerator
 
         // construct the InvocationExpression with the arguments
         var invocation = InvocationExpression(
-            MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                IdentifierName("subject"),
-                IdentifierName(invocations.TargetMethod.Name)
-            ))
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName(_variableNameConverter.ToGeneratedVariableName(ProfiledSubjectVariableName)),
+                    IdentifierName(invocations.TargetMethod.Name)
+                ))
             .WithArgumentList(
                 ArgumentList(SeparatedList(arguments))
             );
         StatementSyntax proxyCall = invocations.TargetMethod.ReturnsVoid
             ? ExpressionStatement(invocation)
             : ReturnStatement(invocation);
+        var tryProxyCallExecution = TryStatement()
+            .WithBlock(Block(proxyCall));
+        
+        // 5. in the finally branch end the profiling of the subject method & collects traces
+        var endMethodProfilingCall = ExpressionStatement(
+            InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(_variableNameConverter.ToGeneratedVariableName(ProfilingContextVariableName)),
+                        IdentifierName(nameof(ProfilingContext.EndMethodProfiling))))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList(
+                            Argument(
+                                IdentifierName(_variableNameConverter.ToGeneratedVariableName(InvocationIdVariableName)))))));
+        var collectTracesCall = ExpressionStatement(
+            InvocationExpression(
+                MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    IdentifierName(_variableNameConverter.ToGeneratedVariableName(ProfilingContextVariableName)),
+                    IdentifierName(nameof(ProfilingContext.CollectTraces)))));
+        tryProxyCallExecution = tryProxyCallExecution.WithFinally(
+            FinallyClause(Block(
+                endMethodProfilingCall,
+                collectTracesCall)));
 
         interceptorMethod = interceptorMethod.WithBody(Block(
-            consoleLogStatement,
-            proxyCall));
+            contextVariableDefinition,
+            methodProfilingStart,
+            tryProxyCallExecution));
         return interceptorMethod;
     }
 
@@ -248,7 +328,7 @@ internal class InterceptorSyntaxGenerator
         MethodDeclarationSyntax interceptorMethod)
     {
         // create an InterceptsLocation for each invocation location of the target method
-        _logger.Debug($"Has {invocations.Locations.Count()} interceptable invocations");
+        _logger.Debug($"Has {invocations.Locations.Count()} interceptable invocation(s)");
         var attributes = new List<AttributeListSyntax>();
         foreach (var (invocationLocation, interceptableLocation) in invocations.Locations)
         {

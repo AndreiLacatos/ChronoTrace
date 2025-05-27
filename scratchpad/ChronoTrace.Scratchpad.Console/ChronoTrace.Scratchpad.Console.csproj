@@ -12,6 +12,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\ChronoTrace.Attributes\ChronoTrace.Attributes.csproj" />
+      <ProjectReference Include="..\..\src\ChronoTrace.ProfilingInternals\ChronoTrace.ProfilingInternals.csproj" />
       <ProjectReference Include="..\..\src\ChronoTrace.SourceGenerators\ChronoTrace.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 

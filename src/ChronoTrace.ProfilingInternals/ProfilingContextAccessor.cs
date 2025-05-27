@@ -1,10 +1,10 @@
 namespace ChronoTrace.ProfilingInternals;
 
-internal class ProfilingContextAccessor
+public sealed class ProfilingContextAccessor
 {
     private static readonly AsyncLocal<ProfilingContext?> Context = new AsyncLocal<ProfilingContext?>();
 
-    internal static ProfilingContext Current
+    public static ProfilingContext Current
     {
         get
         {

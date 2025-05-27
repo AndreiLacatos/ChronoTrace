@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace ChronoTrace.ProfilingInternals;
 
-internal sealed class ProfilingContext
+public sealed class ProfilingContext
 {
     private readonly SemaphoreSlim _semaphore;
     private readonly List<ProfiledMethodInvocation> _methodCalls;
@@ -17,7 +17,7 @@ internal sealed class ProfilingContext
         _semaphore = new SemaphoreSlim(1, 1);
     }
 
-    internal ushort BeginMethodProfiling(string methodName)
+    public ushort BeginMethodProfiling(string methodName)
     {
         _semaphore.Wait();
         ++_pendingCalls;
@@ -34,7 +34,7 @@ internal sealed class ProfilingContext
         return invocationId;
     }
 
-    internal void EndMethodProfiling(ushort invocationId)
+    public void EndMethodProfiling(ushort invocationId)
     {
         var currentTicks = Stopwatch.GetTimestamp();
         _semaphore.Wait();
@@ -50,7 +50,7 @@ internal sealed class ProfilingContext
         _semaphore.Release();
     }
 
-    internal void CollectTraces()
+    public void CollectTraces()
     {
         _semaphore.Wait();
         var hasPendingCalls = _pendingCalls > 0;
@@ -68,5 +68,9 @@ internal sealed class ProfilingContext
             var executionTime = Stopwatch.GetElapsedTime(invocation.InvocationTick, invocation.ReturnTick!.Value);
             Console.WriteLine($"\t{invocation.MethodName} {executionTime}");
         }
+        
+        // reset state
+        _invocationCounter = 0;
+        _methodCalls.Clear();
     }
 }
