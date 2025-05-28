@@ -4,10 +4,6 @@
 name: Manual NuGet Package Publish
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Package dev.'
-        required: true
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
