@@ -11,7 +11,7 @@
         <Copyright>Copyright © AndreiLacatos</Copyright>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <Description>A library for simple, function-level performance tracing.</Description>
+        <Description>A package for simple, function-level performance tracing.</Description>
         <PackageTags>tracing profiling timing performance codegen codegenerator codegeneration</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://github.com/AndreiLacatos/ChronoTrace</PackageProjectUrl>
