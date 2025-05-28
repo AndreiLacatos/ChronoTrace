@@ -6,6 +6,15 @@
         <Nullable>enable</Nullable>
         <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
         <IncludeBuildOutput>false</IncludeBuildOutput>
+        <PackageId>ChronoTrace</PackageId>
+        <Authors>Andrei Lacatos</Authors>
+        <Copyright>Copyright © AndreiLacatos</Copyright>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Description>A library for simple, function-level performance tracing.</Description>
+        <PackageTags>tracing profiling timing performance codegen codegenerator codegeneration</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://github.com/AndreiLacatos/ChronoTrace</PackageProjectUrl>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,8 +31,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="$(SolutionDir)\..\README.md" Pack="true" PackagePath="\" />
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(OutputPath)\ChronoTrace.ProfilingInternals.dll" Pack="true" PackagePath="lib\net9.0" Visible="false" />
         <None Include="$(OutputPath)\ChronoTrace.Attributes.dll" Pack="true" PackagePath="lib\net9.0" Visible="false" />
     </ItemGroup>
+
+    <Import Project="$(SolutionDir)\..\version.props" />
+
 </Project>
