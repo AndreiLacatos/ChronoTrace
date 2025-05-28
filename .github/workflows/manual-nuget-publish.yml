@@ -1,0 +1,35 @@
+# This workflow is intended for short term use!
+# It takes the dev branch of the repository, builds the package & pushes it to NuGet
+
+name: Manual NuGet Package Publish
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package dev.'
+        required: true
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore ./src
+
+      - name: Build solution/project
+        run: dotnet build ./src --configuration Release --no-restore
+
+      - name: Create NuGet package
+        run: dotnet pack ./src --configuration Release --no-build ./artifacts
+
+      - name: Push NuGet package
+        run: dotnet nuget push "./artifcats/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
