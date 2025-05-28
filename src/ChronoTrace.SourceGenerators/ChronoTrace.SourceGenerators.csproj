@@ -5,6 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,6 +17,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ChronoTrace.ProfilingInternals\ChronoTrace.ProfilingInternals.csproj" />
+      <ProjectReference Include="..\ChronoTrace.ProfilingInternals\ChronoTrace.ProfilingInternals.csproj" PrivateAssets="all" />
+      <ProjectReference Include="..\ChronoTrace.Attributes\ChronoTrace.Attributes.csproj" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="$(OutputPath)\ChronoTrace.ProfilingInternals.dll" Pack="true" PackagePath="lib\net9.0" Visible="false" />
+        <None Include="$(OutputPath)\ChronoTrace.Attributes.dll" Pack="true" PackagePath="lib\net9.0" Visible="false" />
     </ItemGroup>
 </Project>

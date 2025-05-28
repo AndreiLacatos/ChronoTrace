@@ -18,7 +18,10 @@ internal sealed class Logger
     private readonly StringBuilder _messageBuilder;
     private readonly SemaphoreSlim _semaphoreSlim;
     private readonly Level _level;
+#if DEBUG
     private bool _flushed;
+#endif
+
 
     internal Logger(string path, string level)
     {
@@ -26,7 +29,9 @@ internal sealed class Logger
         _logPath = Path.Combine(path, ScratchPadFile);
         _messageBuilder = new StringBuilder();
         _semaphoreSlim = new SemaphoreSlim(1, 1);
+#if DEBUG
         _flushed = false;
+#endif
     }
 
     internal void Trace(string message) => Log(Level.Trace, message);
