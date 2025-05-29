@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using ChronoTrace.SourceGenerators.DataStructures;
+using ChronoTrace.SourceGenerators.IncrementalValueProviderExtensions;
 using ChronoTrace.SourceGenerators.SourceGenerator;
 using ChronoTrace.SourceGenerators.SourceGenerator.NameProviders;
 using Microsoft.CodeAnalysis;
@@ -14,11 +15,13 @@ public class InterceptorGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var loggerProvider = context.AnalyzerConfigOptionsProvider.CreateLoggerProvider();
+        var outputPathProvider = context.AnalyzerConfigOptionsProvider.CreateTraceOutputPathProvider();
 
         var trackedMethodInvocations = GroupInvocations(
             SelectTrackedMethodInvocations(
                 SelectMethodInvocations(context.SyntaxProvider),
                 SelectAttributedMethods(context.SyntaxProvider)))
+            .Combine(outputPathProvider)
             .EnrichWithLogger(loggerProvider);
 
         context.RegisterPostInitializationOutput(GenerateInterceptsLocationAttribute);
@@ -123,9 +126,11 @@ public class InterceptorGenerator : IIncrementalGenerator
     
     private static void GenerateInterceptors(
         SourceProductionContext context,
-        (InterceptableMethodInvocations, Logger) enrichedInvocation)
+        ((InterceptableMethodInvocations, string?), Logger) enrichedInvocation)
     {
-        var (interceptableInvocation, logger) = enrichedInvocation;
+        var (payload, logger) = enrichedInvocation;
+        var (interceptableInvocation, outputPath) = payload;
+        logger.Info($"Output path: {outputPath ?? "nothing"}");
         var generatedSources = new InterceptorSyntaxGenerator(logger)
             .MakeMethodInterceptor(interceptableInvocation);
         context.AddSource(

@@ -1,9 +1,9 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace ChronoTrace.SourceGenerators;
+namespace ChronoTrace.SourceGenerators.IncrementalValueProviderExtensions;
 
-internal static class IncrementalValueProviderExtensions
+internal static class LoggerProviderExtensions
 {
     internal static IncrementalValueProvider<(T, Logger)> EnrichWithLogger<T>(
         this IncrementalValueProvider<T> valueProvider,
@@ -24,8 +24,8 @@ internal static class IncrementalValueProviderExtensions
     {
         return valueProvider.Select((provider, _) =>
         {
-            provider.GlobalOptions.TryGetValue("build_property.SolutionDir", out var solutionDir);
-            provider.GlobalOptions.TryGetValue("build_property.ChronoTraceGeneratorsLogLevel", out var loglevel);
+            provider.GlobalOptions.TryGetValue(Constants.BuildProperties.SolutionDir, out var solutionDir);
+            provider.GlobalOptions.TryGetValue(Constants.BuildProperties.LogLevel, out var loglevel);
             var logger = new Logger(solutionDir ?? string.Empty, loglevel ?? string.Empty);
             logger.Info("Source generation started");
             return logger;
