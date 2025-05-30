@@ -42,14 +42,14 @@ internal class SourceGeneratorUtilities
     {
         return FormatSourceCode(unit.NormalizeWhitespace().GetText(Encoding.UTF8).ToString());
     }
+
+    internal string FormatSourceCode(string sourceCode) => 
+        $"""
+         {MakeHeader()}
+
+
+         {sourceCode}
+         """;
     
     private static string MakeHeader() => Format(HeaderTemplate, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
-
-    private static string FormatSourceCode(string sourceCode) => 
-        $"""
-        {MakeHeader()}
-
-
-        {sourceCode}
-        """;
 }

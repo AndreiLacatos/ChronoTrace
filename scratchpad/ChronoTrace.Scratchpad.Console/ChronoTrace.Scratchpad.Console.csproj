@@ -7,6 +7,7 @@
         <Nullable>enable</Nullable>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
         <ChronoTraceGeneratorsLogLevel>Debug</ChronoTraceGeneratorsLogLevel> <!-- Available levels: Trace, Debug, Info, Warning, Error -->
+        <ChronoTraceTimingOutput>$(SolutionDir)timings\report.json</ChronoTraceTimingOutput>
         <InterceptorsNamespaces>$(InterceptorsNamespaces);ProfilingInterceptors</InterceptorsNamespaces>
     </PropertyGroup>
 
@@ -19,6 +20,7 @@
     <ItemGroup>
         <CompilerVisibleProperty Include="SolutionDir" />
         <CompilerVisibleProperty Include="ChronoTraceGeneratorsLogLevel" />
+        <CompilerVisibleProperty Include="ChronoTraceTimingOutput" />
     </ItemGroup>
 
 </Project>

@@ -21,10 +21,10 @@ public class InterceptorGenerator : IIncrementalGenerator
             SelectTrackedMethodInvocations(
                 SelectMethodInvocations(context.SyntaxProvider),
                 SelectAttributedMethods(context.SyntaxProvider)))
-            .Combine(outputPathProvider)
             .EnrichWithLogger(loggerProvider);
 
         context.RegisterPostInitializationOutput(GenerateInterceptsLocationAttribute);
+        context.RegisterSourceOutput(outputPathProvider, GenerateSettingsProvider);
         context.RegisterSourceOutput(trackedMethodInvocations, GenerateInterceptors);
     }
 
@@ -126,15 +126,24 @@ public class InterceptorGenerator : IIncrementalGenerator
     
     private static void GenerateInterceptors(
         SourceProductionContext context,
-        ((InterceptableMethodInvocations, string?), Logger) enrichedInvocation)
+        (InterceptableMethodInvocations, Logger) enrichedInvocation)
     {
-        var (payload, logger) = enrichedInvocation;
-        var (interceptableInvocation, outputPath) = payload;
-        logger.Info($"Output path: {outputPath ?? "nothing"}");
+        var (interceptableInvocation, logger) = enrichedInvocation;
         var generatedSources = new InterceptorSyntaxGenerator(logger)
             .MakeMethodInterceptor(interceptableInvocation);
         context.AddSource(
             new GeneratedSourceFileNameProvider().GetHintName(interceptableInvocation.TargetMethod),
             new SourceGeneratorUtilities().FormatCompilationUnitSyntax(generatedSources));
+    }
+
+    private static void GenerateSettingsProvider(
+        SourceProductionContext context,
+        string? outputPath)
+    {
+        var generatedSources = new SettingsProviderSyntaxGenerator()
+            .MakeSettingsProvider(outputPath);
+        context.AddSource(
+            "ProfilingSettingsProvider.g.cs",
+            new SourceGeneratorUtilities().FormatSourceCode(generatedSources));
     }
 }

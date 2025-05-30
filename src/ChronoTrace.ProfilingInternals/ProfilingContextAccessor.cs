@@ -1,4 +1,5 @@
 using ChronoTrace.ProfilingInternals.DataExport.Json;
+using ChronoTrace.ProfilingInternals.Settings;
 
 namespace ChronoTrace.ProfilingInternals;
 
@@ -10,8 +11,8 @@ public sealed class ProfilingContextAccessor
     {
         get
         {
-            var exporter = new JsonExporter(new StaticExportDirectoryProvider(), new StaticJsonFileNameProvider());
-            Context.Value ??= new ProfilingContext(exporter);
+            var visitor = JsonExporterFactory.MakeJsonExporter(ProfilingSettingsProvider.GetSettings());
+            Context.Value ??= new ProfilingContext(visitor);
             return Context.Value;
         }
     }
