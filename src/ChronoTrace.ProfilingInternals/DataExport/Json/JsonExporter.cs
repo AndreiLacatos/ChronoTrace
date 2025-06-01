@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ChronoTrace.ProfilingInternals.DataExport.FileRotation;
 
 namespace ChronoTrace.ProfilingInternals.DataExport.Json;
 
@@ -7,14 +8,17 @@ internal sealed class JsonExporter : ITraceVisitor
     private TimingReport? _timingReport;
     private readonly IExportDirectoryProvider _exportDirectoryProvider;
     private readonly IJsonFileNameProvider _jsonFileNameProvider;
+    private readonly IFileRotationStrategy _fileRotator;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     internal JsonExporter(
         IExportDirectoryProvider exportDirectoryProvider,
-        IJsonFileNameProvider jsonFileNameProvider)
+        IJsonFileNameProvider jsonFileNameProvider,
+        IFileRotationStrategy fileRotator)
     {
         _exportDirectoryProvider = exportDirectoryProvider;
         _jsonFileNameProvider = jsonFileNameProvider;
+        _fileRotator = fileRotator;
         _jsonSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
@@ -43,10 +47,13 @@ internal sealed class JsonExporter : ITraceVisitor
     {
         var json = JsonSerializer.Serialize(_timingReport, _jsonSerializerOptions);
         var directory = _exportDirectoryProvider.GetExportDirectory();
-        var path = Path.Combine(
+        var fileName = _fileRotator.RotateName(
             directory,
             _jsonFileNameProvider.GetJsonFileName());
-        if (!Directory.Exists(directory))
+        var path = Path.Combine(
+            directory,
+            fileName);
+        if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }

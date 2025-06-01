@@ -1,3 +1,4 @@
+using ChronoTrace.ProfilingInternals.DataExport.FileRotation;
 using ChronoTrace.ProfilingInternals.Settings;
 
 namespace ChronoTrace.ProfilingInternals.DataExport.Json;
@@ -6,9 +7,13 @@ internal static class JsonExporterFactory
 {
     internal static JsonExporter MakeJsonExporter(ProfilingSettings settings)
     {
+        var fileRotation = new DailyCounterFileRotationStrategy(TimeProvider.System);
         if (string.IsNullOrWhiteSpace(settings.OutputPath))
         {
-            return new JsonExporter(new StaticExportDirectoryProvider(), new StaticJsonFileNameProvider());
+            return new JsonExporter(
+                new StaticExportDirectoryProvider(),
+                new StaticJsonFileNameProvider(),
+                fileRotation);
         }
 
         var directoryProvider = new BuildPropertyExportDirectoryProvider(settings.OutputPath);
@@ -24,6 +29,6 @@ internal static class JsonExporterFactory
             fileNameProvider = new BuildPropertyJsonFileNameProvider(settings.OutputPath);
         }
 
-        return new JsonExporter(directoryProvider, fileNameProvider);
+        return new JsonExporter(directoryProvider, fileNameProvider, fileRotation);
     }
 }

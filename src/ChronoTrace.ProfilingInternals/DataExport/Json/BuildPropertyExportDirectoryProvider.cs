@@ -16,6 +16,7 @@ internal sealed class BuildPropertyExportDirectoryProvider : IExportDirectoryPro
             return _path;
         }
 
-        return _path[.._path.LastIndexOf(Path.DirectorySeparatorChar)];
+        var directorySeparatorIndex = _path.LastIndexOf(Path.DirectorySeparatorChar);
+        return directorySeparatorIndex > 0 ? _path[..directorySeparatorIndex] : string.Empty;
     }
 }
