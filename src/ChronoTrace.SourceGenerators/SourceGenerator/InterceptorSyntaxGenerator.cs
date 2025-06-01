@@ -8,6 +8,18 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace ChronoTrace.SourceGenerators.SourceGenerator;
 
+/// <summary>
+/// Generates the C# syntax tree for method interceptors.
+/// This class uses Roslyn syntax factory methods to construct the necessary namespaces,
+/// classes, methods, and attributes for implementing the C# Interceptors feature
+/// to wrap target methods with profiling logic.
+/// </summary>
+/// <remarks>
+/// Within this class, static interceptor methods are generated, each targeting specific
+/// invocations of an original method using the <c>[InterceptsLocation]</c> attribute.
+/// The body of the interceptor method provides the necessary instrumentation by facilitating
+/// <see cref="ProfilingContextAccessor"/> and <see cref="ProfilingContext"/>.
+/// </remarks>
 internal class InterceptorSyntaxGenerator
 {
     private const string ProfiledSubjectVariableName = "subject";
@@ -28,7 +40,20 @@ internal class InterceptorSyntaxGenerator
         _interceptorHandlerNameProvider = new InterceptorHandlerNameProvider();
         _variableNameConverter = new GeneratedVariableNameConverter();
     }
-    
+
+    /// <summary>
+    /// Generates a complete <see cref="CompilationUnitSyntax"/> for an interceptor class
+    /// that targets the specified method invocations.
+    /// </summary>
+    /// <param name="invocations">
+    /// An <see cref="InterceptableMethodInvocations"/> object detailing the target method
+    /// and all its invocation sites that need to be intercepted.
+    /// </param>
+    /// <returns>
+    /// A <see cref="CompilationUnitSyntax"/> representing the generated C# source file.
+    /// This includes necessary usings, a namespace, a static extension class,
+    /// and the interceptor method annotated with <c>[InterceptsLocation]</c> attributes.
+    /// </returns>
     internal CompilationUnitSyntax MakeMethodInterceptor(InterceptableMethodInvocations invocations)
     {
         var className = invocations.TargetMethod.ContainingType.Name;

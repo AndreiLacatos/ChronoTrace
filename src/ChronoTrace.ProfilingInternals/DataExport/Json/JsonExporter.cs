@@ -3,6 +3,11 @@ using ChronoTrace.ProfilingInternals.DataExport.FileRotation;
 
 namespace ChronoTrace.ProfilingInternals.DataExport.Json;
 
+/// <summary>
+/// An internal implementation of <see cref="ITraceVisitor"/> that collects trace data
+/// and exports it as a JSON file. It utilizes providers for determining the output
+/// directory and file name, and a strategy for file rotation.
+/// </summary>
 internal sealed class JsonExporter : ITraceVisitor
 {
     private TimingReport? _timingReport;

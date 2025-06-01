@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <InterceptorsNamespaces>$(InterceptorsNamespaces);ProfilingInterceptors</InterceptorsNamespaces>
+        <ChronoTraceTimingOutput>$(SolutionDir)demo\report_demo.json</ChronoTraceTimingOutput>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ChronoTrace" Version="0.0.1-prealpha" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="SolutionDir" />
+        <CompilerVisibleProperty Include="ChronoTraceTimingOutput" />
+    </ItemGroup>
+    
+</Project>

@@ -2,6 +2,21 @@ using System.Text;
 
 namespace ChronoTrace.SourceGenerators;
 
+/// <summary>
+/// Provides a simple, file-based logging mechanism intended exclusively for
+/// internal development and debugging purposes.
+/// </summary>
+/// <remarks>
+/// <para>
+///   IMPORTANT: DEVELOPMENT AND DEBUGGING AID ONLY.
+/// </para>
+/// <para>
+///   This logger is designed solely for use during the development phase of the
+///   enclosing library or application. 
+///   All its functionality (methods and an internal state) is effectively stripped out
+///   when the build configuration is not <c>DEBUG</c>.
+/// </para>
+/// </remarks>
 internal sealed class Logger
 {
     private enum Level

@@ -1,5 +1,9 @@
 namespace ChronoTrace.ProfilingInternals.DataExport.Json;
 
+/// <summary>
+/// An internal implementation of <see cref="IExportDirectoryProvider"/> that determines
+/// the export directory from a given path string configured via a build property.
+/// </summary>
 internal sealed class BuildPropertyExportDirectoryProvider : IExportDirectoryProvider
 {
     private readonly string _path;
