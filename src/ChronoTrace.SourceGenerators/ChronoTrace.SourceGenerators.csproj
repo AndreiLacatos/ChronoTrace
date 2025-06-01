@@ -34,7 +34,9 @@
         <None Include="$(SolutionDir)\..\README.md" Pack="true" PackagePath="\" />
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(OutputPath)\ChronoTrace.ProfilingInternals.dll" Pack="true" PackagePath="lib\net9.0" Visible="false" />
+        <None Include="$(OutputPath)\ChronoTrace.ProfilingInternals.xml" Pack="true" PackagePath="lib\net9.0" Visible="false" />
         <None Include="$(OutputPath)\ChronoTrace.Attributes.dll" Pack="true" PackagePath="lib\net9.0" Visible="false" />
+        <None Include="$(OutputPath)\ChronoTrace.Attributes.xml" Pack="true" PackagePath="lib\net9.0" Visible="false" />
     </ItemGroup>
 
     <Import Project="$(SolutionDir)\..\version.props" />
