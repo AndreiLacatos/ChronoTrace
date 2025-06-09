@@ -24,8 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ChronoTrace.Attributes\ChronoTrace.Attributes.csproj" />
-      <ProjectReference Include="..\ChronoTrace.SourceGenerators\ChronoTrace.SourceGenerators.csproj" />
+      <ProjectReference Include="..\..\src\ChronoTrace.Attributes\ChronoTrace.Attributes.csproj" />
+      <ProjectReference Include="..\..\src\ChronoTrace.SourceGenerators\ChronoTrace.SourceGenerators.csproj" />
     </ItemGroup>
 
 </Project>
