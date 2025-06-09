@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 
 scratchpad.log
 *.received.cs
+coverage/
