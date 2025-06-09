@@ -11,5 +11,10 @@ namespace ChronoTrace.SourceGenerators.DataStructures;
 /// Used during code analysis, collection of such items are converted to <see cref="InterceptableMethodInvocations"/>
 /// objects before passed to code generation.
 /// </summary>
-internal sealed record MethodInvocation(IMethodSymbol TargetMethod, Location Location, InterceptableLocation InterceptableLocation);
+internal sealed record MethodInvocation(
+    IMethodSymbol TargetMethod,
+    Location Location,
+    InterceptableLocation InterceptableLocation,
+    MethodMetadata Metadata);
+
 #pragma warning restore RSEXPERIMENTAL002

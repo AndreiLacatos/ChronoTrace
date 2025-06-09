@@ -119,7 +119,8 @@ internal class InterceptorSyntaxGenerator
 
         var symbolDisplayFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
         );
 
         if (invocations.TargetMethod.ReturnsVoid)
@@ -137,11 +138,17 @@ internal class InterceptorSyntaxGenerator
             returnTypeSyntax,
             Identifier(_interceptorHandlerNameProvider.GetHandlerName(invocations.TargetMethod)));
 
-        // make the method public & static
-        interceptorMethod = interceptorMethod.WithModifiers(TokenList(
+        // make the method public & static, add async modifier if the intercepted call
+        // needs to be awaited in the method body
+        var methodModifierTokens = TokenList(
             Token(SyntaxKind.PublicKeyword),
-            Token(SyntaxKind.StaticKeyword)));
-        
+            Token(SyntaxKind.StaticKeyword));
+        if (invocations.Metadata.MethodType.IsAsync())
+        {
+            methodModifierTokens = methodModifierTokens.Add(Token(SyntaxKind.AsyncKeyword));
+        }
+        interceptorMethod = interceptorMethod.WithModifiers(methodModifierTokens);
+
         // add parameters, the first is always the extended type
         // "this SubjectClass subject", unless the intercepted method is static
         var parameters = new List<ParameterSyntax>();
@@ -303,7 +310,7 @@ internal class InterceptorSyntaxGenerator
         }
 
         // construct the InvocationExpression with the arguments
-        var invocation = InvocationExpression(
+        ExpressionSyntax invocation = InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     IdentifierName(_variableNameConverter.ToGeneratedVariableName(ProfiledSubjectVariableName)),
@@ -312,7 +319,13 @@ internal class InterceptorSyntaxGenerator
             .WithArgumentList(
                 ArgumentList(SeparatedList(arguments))
             );
-        StatementSyntax proxyCall = invocations.TargetMethod.ReturnsVoid
+
+        if (invocations.Metadata.MethodType.IsAsync())
+        {
+            invocation = AwaitExpression(invocation);
+        }
+
+        StatementSyntax proxyCall = invocations.Metadata.MethodType.IsVoidType()
             ? ExpressionStatement(invocation)
             : ReturnStatement(invocation);
         var tryProxyCallExecution = TryStatement()

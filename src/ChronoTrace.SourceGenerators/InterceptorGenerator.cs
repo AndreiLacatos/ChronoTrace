@@ -80,10 +80,12 @@ public class InterceptorGenerator : IIncrementalGenerator
                         return null;
                     }
 
+                    var metadata = new MethodMetadata(targetMethodSymbol.GetMethodType(ctx.SemanticModel.Compilation));
+
 #pragma warning disable RSEXPERIMENTAL002 // / Experimental interceptable location API
                     if (ctx.SemanticModel.GetInterceptableLocation(invocationSyntax, ct) is { } location)
                     {
-                        return new MethodInvocation(targetMethodSymbol, invocationSyntax.GetLocation(), location);
+                        return new MethodInvocation(targetMethodSymbol, invocationSyntax.GetLocation(), location, metadata);
                     }
 #pragma warning restore RSEXPERIMENTAL002
 
@@ -123,7 +125,8 @@ public class InterceptorGenerator : IIncrementalGenerator
                 .GroupBy(inv => inv.TargetMethod, SymbolEqualityComparer.Default)
                 .Select(group => new InterceptableMethodInvocations(
                     (IMethodSymbol)group.Key!,
-                    group.Select(item => (item.Location, item.InterceptableLocation))))
+                    group.Select(item => (item.Location, item.InterceptableLocation)),
+                    group.First().Metadata))
             );
     }
 

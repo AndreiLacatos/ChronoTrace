@@ -12,5 +12,6 @@ namespace ChronoTrace.SourceGenerators.DataStructures;
 /// </summary>
 internal sealed record InterceptableMethodInvocations(
     IMethodSymbol TargetMethod,
-    IEnumerable<(Location InvocationLocation, InterceptableLocation InterceptableLocation)> Locations);
+    IEnumerable<(Location InvocationLocation, InterceptableLocation InterceptableLocation)> Locations,
+    MethodMetadata Metadata);
 #pragma warning restore RSEXPERIMENTAL002
