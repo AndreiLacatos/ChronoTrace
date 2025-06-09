@@ -16,6 +16,13 @@ namespace ChronoTrace.SourceGenerators.SourceGenerator;
 /// </remarks>
 internal class SourceGeneratorUtilities
 {
+    private readonly TimeProvider _timeProvider;
+
+    internal SourceGeneratorUtilities(TimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
+
     /// <summary>
     /// The template for the standard header prepended to all auto-generated source files.
     /// </summary>
@@ -78,6 +85,6 @@ internal class SourceGeneratorUtilities
 
          {sourceCode}
          """;
-    
-    private static string MakeHeader() => Format(HeaderTemplate, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+
+    private string MakeHeader() => Format(HeaderTemplate, _timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss"));
 }

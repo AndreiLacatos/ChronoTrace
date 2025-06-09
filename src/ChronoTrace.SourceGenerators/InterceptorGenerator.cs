@@ -12,20 +12,31 @@ namespace ChronoTrace.SourceGenerators;
 [Generator]
 public class InterceptorGenerator : IIncrementalGenerator
 {
+    private GeneratorDependencies? _dependencies;
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        ConfigureDependencies(GeneratorDependencies.Default);
         var loggerProvider = context.AnalyzerConfigOptionsProvider.CreateLoggerProvider();
         var outputPathProvider = context.AnalyzerConfigOptionsProvider.CreateTraceOutputPathProvider();
 
         var trackedMethodInvocations = GroupInvocations(
-            SelectTrackedMethodInvocations(
-                SelectMethodInvocations(context.SyntaxProvider),
-                SelectAttributedMethods(context.SyntaxProvider)))
+                SelectTrackedMethodInvocations(
+                    SelectMethodInvocations(context.SyntaxProvider),
+                    SelectAttributedMethods(context.SyntaxProvider)))
             .EnrichWithLogger(loggerProvider);
 
-        context.RegisterPostInitializationOutput(GenerateInterceptsLocationAttribute);
-        context.RegisterSourceOutput(outputPathProvider, GenerateSettingsProvider);
-        context.RegisterSourceOutput(trackedMethodInvocations, GenerateInterceptors);
+        context.RegisterPostInitializationOutput(ctx => 
+            GenerateInterceptsLocationAttribute(ctx, _dependencies!.TimeProvider));
+        context.RegisterSourceOutput(outputPathProvider, (ctx, payload) => 
+            GenerateSettingsProvider(ctx, payload, _dependencies!.TimeProvider));
+        context.RegisterSourceOutput(trackedMethodInvocations, (ctx, payload) => 
+            GenerateInterceptors(ctx, payload, _dependencies!.TimeProvider));
+    }
+
+    internal void ConfigureDependencies(GeneratorDependencies dependencies)
+    {
+        _dependencies ??= dependencies;
     }
 
     private static IncrementalValueProvider<ImmutableHashSet<ISymbol>> SelectAttributedMethods(SyntaxValueProvider syntaxProvider)
@@ -116,34 +127,38 @@ public class InterceptorGenerator : IIncrementalGenerator
             );
     }
 
-    private static void GenerateInterceptsLocationAttribute(IncrementalGeneratorPostInitializationContext ctx)
+    private static void GenerateInterceptsLocationAttribute(
+        IncrementalGeneratorPostInitializationContext ctx,
+        TimeProvider timeProvider)
     {
         ctx.AddSource(
             "ChronoTrace.CompilerUtilities.g.cs",
-            new SourceGeneratorUtilities().MakeInterceptsLocationAttribute()
+            new SourceGeneratorUtilities(timeProvider).MakeInterceptsLocationAttribute()
         );
     }
     
     private static void GenerateInterceptors(
         SourceProductionContext context,
-        (InterceptableMethodInvocations, Logger) enrichedInvocation)
+        (InterceptableMethodInvocations, Logger) enrichedInvocation,
+        TimeProvider timeProvider)
     {
         var (interceptableInvocation, logger) = enrichedInvocation;
         var generatedSources = new InterceptorSyntaxGenerator(logger)
             .MakeMethodInterceptor(interceptableInvocation);
         context.AddSource(
             new GeneratedSourceFileNameProvider().GetHintName(interceptableInvocation.TargetMethod),
-            new SourceGeneratorUtilities().FormatCompilationUnitSyntax(generatedSources));
+            new SourceGeneratorUtilities(timeProvider).FormatCompilationUnitSyntax(generatedSources));
     }
 
     private static void GenerateSettingsProvider(
         SourceProductionContext context,
-        string? outputPath)
+        string? outputPath,
+        TimeProvider timeProvider)
     {
         var generatedSources = new SettingsProviderSyntaxGenerator()
             .MakeSettingsProvider(outputPath);
         context.AddSource(
             "ProfilingSettingsProvider.g.cs",
-            new SourceGeneratorUtilities().FormatSourceCode(generatedSources));
+            new SourceGeneratorUtilities(timeProvider).FormatSourceCode(generatedSources));
     }
 }
