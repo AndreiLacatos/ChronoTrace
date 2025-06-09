@@ -1,13 +1,14 @@
 using ChronoTrace.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Extensions.Time.Testing;
 
 namespace ChronoTrace.SourceGenerators.Tests;
 
 internal static class SourceGenerationRunner
 {
-    internal static GeneratorDriver Run(string source)
+    internal static GeneratorDriver Run(string source, AnalyzerConfigOptionsProvider? optionsProvider = null)
     {
         // create a syntax tree from the input source code
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
@@ -36,7 +37,11 @@ internal static class SourceGenerationRunner
         });
 
         // run the generator against the compilation
-        var driver = CSharpGeneratorDriver.Create(generator);
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+        if (optionsProvider is not null)
+        {
+            driver = driver.WithUpdatedAnalyzerConfigOptions(optionsProvider);
+        }
         return driver.RunGenerators(compilation);
     }
 }
