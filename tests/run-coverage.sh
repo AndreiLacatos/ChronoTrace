@@ -32,7 +32,7 @@ echo "Configuration: ${CONFIGURATION}"
 echo "========================================================"
 printf "${COLOR_RESET}"
 
-pushd ../../src > /dev/null
+pushd ../src > /dev/null
 dotnet build ChronoTrace.sln -c "${CONFIGURATION}"
 popd > /dev/null
 echo
@@ -44,7 +44,7 @@ echo "Running ChronoTrace.SourceGenerators.Tests"
 echo "========================================================"
 printf "${COLOR_RESET}"
 
-dotnet dotcover cover-dotnet --output="${OUTPUT_REPORT}" --reportType="HTML" --filters="${COVERAGE_FILTERS}" -- test --no-build
+dotnet dotcover cover-dotnet --output="${OUTPUT_REPORT}" --reportType="HTML" --filters="${COVERAGE_FILTERS}" -- test ../src/ChronoTrace.sln --no-build
 echo
 
 # --- Success Message ---

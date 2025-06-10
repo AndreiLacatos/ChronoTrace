@@ -106,7 +106,7 @@ public sealed class ProfilingContext
         _semaphore.Release();
         if (hasPendingCalls)
         {
-            // current profiling scope is not finished yet, there are profiled methods in execution
+            // the current profiling scope is not finished yet, there are profiled methods in execution
             return;
         }
 

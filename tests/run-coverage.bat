@@ -32,7 +32,7 @@ echo Building ChronoTrace
 echo Configuration: %CONFIGURATION%
 echo ========================================================
 echo %ColorReset%
-pushd ..\..\src
+pushd ..\src
 call dotnet build ChronoTrace.sln -c %CONFIGURATION%
 if errorlevel 1 (
     echo ERROR: Failed to build ChronoTrace solution.
@@ -48,7 +48,7 @@ echo ========================================================
 echo Running ChronoTrace.SourceGenerators.Tests
 echo ========================================================
 echo %ColorReset%
-call dotCover cover-dotnet --output "%OUTPUT_REPORT%" --reportType HTML --filters="%COVERAGE_FILTERS%" -- test --no-build
+call dotCover cover-dotnet --output "%OUTPUT_REPORT%" --reportType HTML --filters="%COVERAGE_FILTERS%" -- test ..\src\ChronoTrace.sln --no-build
 if errorlevel 1 (
     echo ERROR: Failed to run tests.
     popd

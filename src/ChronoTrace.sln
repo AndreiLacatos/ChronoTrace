@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChronoTrace.ProfilingIntern
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChronoTrace.SourceGenerators.Tests", "..\tests\ChronoTrace.SourceGenerators.Tests\ChronoTrace.SourceGenerators.Tests.csproj", "{0869AE58-3749-41E0-8EF4-D7C23EA1A57B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChronoTrace.ProfilingInternals.Tests", "..\tests\ChronoTrace.ProfilingInternals.Tests\ChronoTrace.ProfilingInternals.Tests.csproj", "{CC48A605-60A8-47A6-A0F5-2AC0C8D465D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{0869AE58-3749-41E0-8EF4-D7C23EA1A57B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0869AE58-3749-41E0-8EF4-D7C23EA1A57B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0869AE58-3749-41E0-8EF4-D7C23EA1A57B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC48A605-60A8-47A6-A0F5-2AC0C8D465D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC48A605-60A8-47A6-A0F5-2AC0C8D465D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC48A605-60A8-47A6-A0F5-2AC0C8D465D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC48A605-60A8-47A6-A0F5-2AC0C8D465D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
