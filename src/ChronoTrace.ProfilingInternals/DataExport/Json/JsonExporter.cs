@@ -15,6 +15,7 @@ internal sealed class JsonExporter : ITraceVisitor
     private readonly IJsonFileNameProvider _jsonFileNameProvider;
     private readonly IFileRotationStrategy _fileRotator;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private static readonly SemaphoreSlim FileSystemLock = new SemaphoreSlim(1, 1);
 
     internal JsonExporter(
         IExportDirectoryProvider exportDirectoryProvider,
@@ -52,16 +53,24 @@ internal sealed class JsonExporter : ITraceVisitor
     {
         var json = JsonSerializer.Serialize(_timingReport, _jsonSerializerOptions);
         var directory = _exportDirectoryProvider.GetExportDirectory();
-        var fileName = _fileRotator.RotateName(
-            directory,
-            _jsonFileNameProvider.GetJsonFileName());
-        var path = Path.Combine(
-            directory,
-            fileName);
-        if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+        FileSystemLock.Wait();
+        try
         {
-            Directory.CreateDirectory(directory);
+            var fileName = _fileRotator.RotateName(
+                directory,
+                _jsonFileNameProvider.GetJsonFileName());
+            var path = Path.Combine(
+                directory,
+                fileName);
+            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            File.WriteAllText(path, json);
         }
-        File.WriteAllText(path, json);
+        finally
+        {
+            FileSystemLock.Release();
+        }
     }
 }

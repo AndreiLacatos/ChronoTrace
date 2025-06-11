@@ -14,6 +14,7 @@
         <PackageReference Include="Shouldly" Version="4.3.0" />
         <PackageReference Include="xunit" Version="2.9.2"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2"/>
+        <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.5.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -33,6 +34,15 @@
       </Compile>
       <Compile Update="ProfilingContextTests.HappyPath.cs">
         <DependentUpon>ProfilingContextTests.cs</DependentUpon>
+      </Compile>
+      <Compile Update="DataExport\Json\JsonExporterTests.HappyPath.cs">
+        <DependentUpon>JsonExporterTests.cs</DependentUpon>
+      </Compile>
+      <Compile Update="DataExport\Json\JsonExporterTests.ErrorHandling.cs">
+        <DependentUpon>JsonExporterTests.cs</DependentUpon>
+      </Compile>
+      <Compile Update="DataExport\Json\JsonExporterTests.Concurrency.cs">
+        <DependentUpon>JsonExporterTests.cs</DependentUpon>
       </Compile>
     </ItemGroup>
 

@@ -6,12 +6,10 @@ internal sealed class DailyCounterFileRotationStrategy : IFileRotationStrategy
 {
     private const string DateFormat = "yyyyMMdd";
     private readonly TimeProvider _timeProvider;
-    private readonly SemaphoreSlim _semaphore;
 
     internal DailyCounterFileRotationStrategy(TimeProvider timeProvider)
     {
         _timeProvider = timeProvider;
-        _semaphore = new SemaphoreSlim(1, 1);
     }
 
     public string RotateName(string parentDirectory, string baseFileName)
@@ -20,21 +18,11 @@ internal sealed class DailyCounterFileRotationStrategy : IFileRotationStrategy
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(baseFileName);
         var extension = Path.GetExtension(baseFileName);
 
-        int previousFileIndex;
-        _semaphore.Wait();
-        try
-        {
-            previousFileIndex = GetPreviousFileIndex(
-                parentDirectory,
-                fileNameWithoutExtension,
-                extension,
-                todayDateString);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-
+        var previousFileIndex = GetPreviousFileIndex(
+            parentDirectory,
+            fileNameWithoutExtension,
+            extension,
+            todayDateString);
         var nextIndex = (previousFileIndex + 1).ToString().PadLeft(6, '0');
         return $"{fileNameWithoutExtension}_{todayDateString}_{nextIndex}{extension}";
     }
@@ -51,29 +39,31 @@ internal sealed class DailyCounterFileRotationStrategy : IFileRotationStrategy
             return 0;
         }
 
+        var escapedFileNameWithoutExtension = Regex.Escape(fileNameWithoutExtension);
+        var regexPatternString = $"^{escapedFileNameWithoutExtension}_{dateString}_(\\d{{6}}){fileExtension}$";
+        var fileCounterRegex = new Regex(regexPatternString, RegexOptions.IgnoreCase);
+        
+        
+        // list files that look like trace files
         var searchPattern = $"{fileNameWithoutExtension}_{dateString}_*{fileExtension}";
         var directoryInfo = new DirectoryInfo(parentDirectory);
-        var lastFile =  directoryInfo
+        var candidateFiles =  directoryInfo
             .EnumerateFiles(searchPattern, SearchOption.TopDirectoryOnly)
-            .Select(fileInfo => fileInfo.Name)
-            .OrderDescending()
-            .FirstOrDefault();
+            .Select(fileInfo => fileInfo.Name);
+        
+        // filter out any noise
+        var matchingFiles = candidateFiles
+            .Select(name => fileCounterRegex.Match(name))
+            .Where(match => match.Success)
+            .ToArray();
 
-        if (string.IsNullOrWhiteSpace(lastFile))
+        if (matchingFiles.Length == 0)
         {
             return 0;
         }
 
-        var escapedFileNameWithoutExtension = Regex.Escape(fileNameWithoutExtension);
-        var regexPatternString = $"^{escapedFileNameWithoutExtension}_{dateString}_(\\d+){fileExtension}$";
-        var fileCounterRegex = new Regex(regexPatternString, RegexOptions.IgnoreCase);
-        var match = fileCounterRegex.Match(lastFile);
-
-        if (match.Success && int.TryParse(match.Groups[1].Value, out var counter))
-        {
-            return counter;
-        }
-
-        return 0;
+        return matchingFiles
+            .Select(match => int.Parse(match.Groups[1].Value))
+            .Max();
     }
 }

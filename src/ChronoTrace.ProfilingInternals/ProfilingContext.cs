@@ -28,6 +28,7 @@ public sealed class ProfilingContext
     private readonly ITraceVisitor _visitor;
     private ushort _invocationCounter;
     private ushort _pendingCalls;
+    private bool _tracesCollected;
 
     internal ProfilingContext(ITraceVisitor visitor)
     {
@@ -116,12 +117,17 @@ public sealed class ProfilingContext
     {
         _semaphore.Wait();
         var hasPendingCalls = _pendingCalls > 0;
-        _semaphore.Release();
-        if (hasPendingCalls)
+        if (hasPendingCalls || _tracesCollected)
         {
-            // the current profiling scope is not finished yet, there are profiled methods in execution
+            // the current profiling scope is not finished yet, there are profiled methods
+            // in execution or the traces have already been collected by another thread
+            _semaphore.Release();
             return;
         }
+
+        // signal that a thread has already started collecting the traces
+        _tracesCollected = true;
+        _semaphore.Release();
 
         _visitor.BeginVisit();
         for (var i = 0; i < _invocationCounter; i++)
@@ -132,6 +138,7 @@ public sealed class ProfilingContext
         
         // reset state
         _invocationCounter = 0;
+        _tracesCollected = false;
         _methodCalls.Clear();
     }
 }
