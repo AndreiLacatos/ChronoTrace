@@ -23,12 +23,6 @@ public partial class JsonExporterTests : IDisposable
 
     public void Dispose()
     {
-        // Ensure the lock is not held by a failed test, which could affect other test runs.
-        if (_fileSystemLock.CurrentCount == 0)
-        {
-            _fileSystemLock.Release();
-        }
-
         if (Directory.Exists(_tempDirectory))
         {
             Directory.Delete(_tempDirectory, true);
