@@ -46,6 +46,12 @@ public sealed class ProfilingContext
     /// <returns>A unique invocation ID for this specific method call instance.</returns>
     public ushort BeginMethodProfiling(string methodName)
     {
+        if (string.IsNullOrWhiteSpace(methodName))
+        {
+            // invalid method name, skipping
+            return 0;
+        }
+
         _semaphore.Wait();
         ++_pendingCalls;
         var invocationId = ++_invocationCounter;
@@ -80,6 +86,13 @@ public sealed class ProfilingContext
         if (invocationId == 0 || invocationId > _invocationCounter)
         {
             // invalid invocationId
+            _semaphore.Release();
+            return;
+        }
+
+        if (_methodCalls[invocationId - 1].ReturnTick is not null)
+        {
+            // profiling of this method has already been completed
             _semaphore.Release();
             return;
         }
