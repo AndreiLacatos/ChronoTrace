@@ -65,4 +65,61 @@ public class SynchronousMethodInterceptorTests
         var driver = SourceGenerationRunner.Run(source);
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
+
+    [Fact]
+    public async Task MultipleSyncMethodsSingularInvocation_ShouldGenerateMultipleSingularSyncInterceptors()
+    {
+        var source = 
+            """
+            public class S
+            {
+                [ChronoTrace.Attributes.Profile]
+                public void Do()
+                {
+                }
+
+                [ChronoTrace.Attributes.Profile]
+                public void DoSomethingElse()
+                {
+                }
+            }
+
+            var subject = new S();
+            subject.Do();
+            subject.DoSomethingElse();
+            """;
+
+        var driver = SourceGenerationRunner.Run(source);
+        await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
+    }
+
+    [Fact]
+    public async Task MultipleSyncMethodsMultipleInvocation_ShouldGenerateMultipleSyncInterceptors()
+    {
+        var source = 
+            """
+            public class S
+            {
+                [ChronoTrace.Attributes.Profile]
+                public void Do()
+                {
+                }
+
+                [ChronoTrace.Attributes.Profile]
+                public void DoSomethingElse()
+                {
+                }
+            }
+
+            var subject = new S();
+            subject.Do();
+            subject.DoSomethingElse();
+            subject.DoSomethingElse();
+            subject.Do();
+            subject.Do();
+            """;
+
+        var driver = SourceGenerationRunner.Run(source);
+        await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
+    }
 }

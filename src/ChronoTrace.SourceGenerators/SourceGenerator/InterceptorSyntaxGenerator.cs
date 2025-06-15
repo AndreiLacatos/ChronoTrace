@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using ChronoTrace.ProfilingInternals;
 using ChronoTrace.SourceGenerators.DataStructures;
 using ChronoTrace.SourceGenerators.SourceGenerator.NameProviders;
@@ -46,18 +47,20 @@ internal class InterceptorSyntaxGenerator
     /// that targets the specified method invocations.
     /// </summary>
     /// <param name="invocations">
-    /// An <see cref="InterceptableMethodInvocations"/> object detailing the target method
-    /// and all its invocation sites that need to be intercepted.
+    /// A non-empty list of <see cref="InterceptableMethodInvocations"/> object detailing the target methods
+    /// and all their invocation sites that need to be intercepted.
     /// </param>
     /// <returns>
     /// A <see cref="CompilationUnitSyntax"/> representing the generated C# source file.
     /// This includes necessary usings, a namespace, a static extension class,
     /// and the interceptor method annotated with <c>[InterceptsLocation]</c> attributes.
+    /// The name of the generated static extension class is based on the parent method of the first item
+    /// in the list of method invocations.
     /// </returns>
-    internal CompilationUnitSyntax MakeMethodInterceptor(InterceptableMethodInvocations invocations)
+    internal CompilationUnitSyntax MakeMethodInterceptors(ImmutableArray<InterceptableMethodInvocations> invocations)
     {
-        var className = invocations.TargetMethod.ContainingType.Name;
-        var methodName = invocations.TargetMethod.Name;
+        var className = invocations.First().TargetMethod.ContainingType.Name;
+        var methodName = invocations.First().TargetMethod.Name;
         _logger.Info($"Generating interceptor for {className}.{methodName}");
 
         // add necessary using statements
@@ -72,18 +75,22 @@ internal class InterceptorSyntaxGenerator
                                 IdentifierName(nameof(System.Runtime))),
                             IdentifierName(nameof(System.Runtime.CompilerServices))))));
 
-        // create class declaration
-        var classDeclaration = MakeClassDeclaration(invocations);
+        // create a class declaration that contains all interceptors
+        var classDeclaration = MakeClassDeclaration(invocations.First());
 
-        // add a static method which handles target method interception
-        var interceptorMethod = MakeInterceptorHandler(invocations);
+        var interceptorMethods = new List<MemberDeclarationSyntax>(capacity: invocations.Length);
+        foreach (var invocation in invocations)
+        {
+            // add a static method which handles target method interception
+            var interceptorMethod = MakeInterceptorHandler(invocation);
 
-        // annotate it with InterceptsLocations attribute(s)
-        interceptorMethod = AddInterceptorAttributes(invocations, interceptorMethod);
+            // annotate it with InterceptsLocations attribute(s)
+            interceptorMethod = AddInterceptorAttributes(invocation, interceptorMethod);
+            interceptorMethods.Add(interceptorMethod);
+        }
 
         // add the method to the class
-        classDeclaration = classDeclaration.WithMembers(
-            SingletonList<MemberDeclarationSyntax>(interceptorMethod));
+        classDeclaration = classDeclaration.WithMembers(List(interceptorMethods));
 
         // create a file scoped namespace declaration
         var namespaceDeclaration = FileScopedNamespaceDeclaration(

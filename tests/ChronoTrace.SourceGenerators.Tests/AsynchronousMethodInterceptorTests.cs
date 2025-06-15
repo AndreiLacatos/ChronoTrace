@@ -118,4 +118,65 @@ public class AsynchronousMethodInterceptorTests
         var driver = SourceGenerationRunner.Run(source);
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
+
+    [Fact]
+    public async Task MultipleAsyncMethodsSingularInvocation_ShouldGenerateMultipleSingularAsyncInterceptors()
+    {
+        var source = 
+            """
+            using System.Threading.Tasks;
+
+            public class S
+            {
+                [ChronoTrace.Attributes.Profile]
+                public async Task Do()
+                {
+                }
+
+                [ChronoTrace.Attributes.Profile]
+                public async Task DoSomethingElse()
+                {
+                }
+            }
+
+            var subject = new S();
+            await subject.Do();
+            await subject.DoSomethingElse();
+            """;
+
+        var driver = SourceGenerationRunner.Run(source);
+        await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
+    }
+
+    [Fact]
+    public async Task MultipleAsyncMethodsMultipleInvocation_ShouldGenerateMultipleAsyncInterceptors()
+    {
+        var source = 
+            """
+            using System.Threading.Tasks;
+
+            public class S
+            {
+                [ChronoTrace.Attributes.Profile]
+                public async Task Do()
+                {
+                }
+
+                [ChronoTrace.Attributes.Profile]
+                public async Task DoSomethingElse()
+                {
+                }
+            }
+
+            var subject = new S();
+            await subject.Do();
+            await subject.DoSomethingElse();
+            await subject.Do();
+            await subject.DoSomethingElse();
+            await subject.Do();
+            """;
+
+        var driver = SourceGenerationRunner.Run(source);
+        await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
+    }
 }
