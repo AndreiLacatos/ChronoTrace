@@ -17,10 +17,14 @@ namespace ChronoTrace.SourceGenerators.SourceGenerator;
 internal class SourceGeneratorUtilities
 {
     private readonly TimeProvider _timeProvider;
+    private readonly string _version;
 
-    internal SourceGeneratorUtilities(TimeProvider timeProvider)
+    internal SourceGeneratorUtilities(
+        TimeProvider timeProvider,
+        string version)
     {
         _timeProvider = timeProvider;
+        _version = version;
     }
 
     /// <summary>
@@ -37,7 +41,7 @@ internal class SourceGeneratorUtilities
         // ║    This file should not be edited! Manual changes may cause incorrect behavior and will be overwritten.    ║
         // ║                                                                                                            ║
         // ╠════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-        // ║    Generated: {0} UTC                                                                      ║
+        // {0}
         // ╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
         //
         // </auto-generated>
@@ -86,5 +90,21 @@ internal class SourceGeneratorUtilities
          {sourceCode}
          """;
 
-    private string MakeHeader() => Format(HeaderTemplate, _timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss"));
+    private string MakeHeader()
+    {
+        const int contentWidth = 100;
+
+        // construct the left and right parts of the line.
+        var timestamp = _timeProvider.GetUtcNow().ToString("yyyy-MM-dd HH:mm:ss");
+        var leftText = $"Generated: {timestamp} UTC";
+        var rightText = $"ChronoTrace version: {_version}";
+
+        // calculate the required padding between the two parts.
+        var spaceCount = Math.Max(0, contentWidth - leftText.Length - rightText.Length);
+        var padding = new string(' ', spaceCount);
+
+        // assemble the full dynamic line
+        var fullLine = $"║    {leftText}{padding}{rightText}    ║";
+        return Format(HeaderTemplate, fullLine);
+    }
 }

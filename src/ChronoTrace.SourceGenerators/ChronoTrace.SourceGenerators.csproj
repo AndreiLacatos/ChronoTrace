@@ -37,9 +37,10 @@
         <None Include="$(OutputPath)\ChronoTrace.ProfilingInternals.xml" Pack="true" PackagePath="lib\net9.0" Visible="false" />
         <None Include="$(OutputPath)\ChronoTrace.Attributes.dll" Pack="true" PackagePath="lib\net9.0" Visible="false" />
         <None Include="$(OutputPath)\ChronoTrace.Attributes.xml" Pack="true" PackagePath="lib\net9.0" Visible="false" />
+        <None Include="$(SolutionDir)\..\ChronoTrace.props" Pack="true" PackagePath="build" />
     </ItemGroup>
 
-    <Import Project="$(SolutionDir)\..\version.props" />
+    <Import Project="$(SolutionDir)\..\ChronoTrace.props" />
 
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

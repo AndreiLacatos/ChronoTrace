@@ -22,8 +22,15 @@ public class MockAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         }
     }
     
-    public MockAnalyzerConfigOptionsProvider(IDictionary<string, string> properties)
+    public MockAnalyzerConfigOptionsProvider(IDictionary<string, string>? properties = null)
     {
+        properties ??= new Dictionary<string, string>();
+        const string packageVersionCompilerOption = "build_property.PackageVersion"; 
+        if (!properties.ContainsKey(packageVersionCompilerOption))
+        {
+            properties.Add(packageVersionCompilerOption, "Testing");
+        }
+
         GlobalOptions = new MockAnalyzerConfigOptions(properties.AsReadOnly());
     }
 

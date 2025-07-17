@@ -26,5 +26,10 @@ internal static class Constants
         /// Roslyn analyzer config option name for trace log output path.
         /// </summary>
         internal const string TimingOutputPath = "build_property.ChronoTraceTimingOutput";
+
+        /// <summary>
+        /// Roslyn analyzer config option name for the library version.
+        /// </summary>
+        internal const string PackageVersion = "build_property.PackageVersion";
     }
 }

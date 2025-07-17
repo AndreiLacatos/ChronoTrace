@@ -7,6 +7,13 @@ namespace ChronoTrace.SourceGenerators.SourceGenerator;
 /// </summary>
 internal sealed class SettingsProviderSyntaxGenerator
 {
+    private readonly string _version;
+
+    public SettingsProviderSyntaxGenerator(string version)
+    {
+        _version = version;
+    }
+
     /// <summary>
     /// Generates the C# source code for the <c>ProfilingSettingsInitializer</c> class.
     /// </summary>
@@ -19,7 +26,7 @@ internal sealed class SettingsProviderSyntaxGenerator
         return $$"""
                namespace ChronoTrace.ProfilingInternals.Settings;
                
-               [global::System.CodeDom.Compiler.GeneratedCodeAttribute("[{{Constants.ChronoTrace}}]", "[0.0.1-prealpha]")]
+               [global::System.CodeDom.Compiler.GeneratedCodeAttribute("[{{Constants.ChronoTrace}}]", "[{{_version}}]")]
                internal static class ProfilingSettingsInitializer
                {
                    [global::System.Runtime.CompilerServices.ModuleInitializer]

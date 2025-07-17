@@ -19,7 +19,7 @@ public class SynchronousMethodInterceptorTests
             subject.Do();
             """;
 
-        var driver = SourceGenerationRunner.Run(source);
+        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -41,7 +41,7 @@ public class SynchronousMethodInterceptorTests
             subject.Do();
             """;
 
-        var driver = SourceGenerationRunner.Run(source);
+        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -62,7 +62,7 @@ public class SynchronousMethodInterceptorTests
             subject.Do(default, default, default);
             """;
 
-        var driver = SourceGenerationRunner.Run(source);
+        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -89,7 +89,7 @@ public class SynchronousMethodInterceptorTests
             subject.DoSomethingElse();
             """;
 
-        var driver = SourceGenerationRunner.Run(source);
+        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -119,7 +119,7 @@ public class SynchronousMethodInterceptorTests
             subject.Do();
             """;
 
-        var driver = SourceGenerationRunner.Run(source);
+        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 }

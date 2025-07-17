@@ -19,15 +19,17 @@ public class InterceptorGenerator : IIncrementalGenerator
     {
         ConfigureDependencies(GeneratorDependencies.Default);
         var outputPathProvider = context.AnalyzerConfigOptionsProvider.CreateTraceOutputPathProvider();
+        var versionProvider = context.AnalyzerConfigOptionsProvider.CreateVersionProvider();
 
         var trackedMethodInvocations = GroupInvocationsByClass( 
             GroupInvocationsByMethod(
                 SelectTrackedMethodInvocations(
                     SelectMethodInvocations(context.SyntaxProvider),
-                    SelectAttributedMethods(context.SyntaxProvider))));
+                    SelectAttributedMethods(context.SyntaxProvider))))
+            .Combine(versionProvider);
 
-        context.RegisterPostInitializationOutput(GenerateInterceptsLocationAttribute);
-        context.RegisterSourceOutput(outputPathProvider, GenerateSettingsProvider);
+        context.RegisterSourceOutput(versionProvider, GenerateInterceptsLocationAttribute);
+        context.RegisterSourceOutput(outputPathProvider.Combine(versionProvider), GenerateSettingsProvider);
         context.RegisterSourceOutput(trackedMethodInvocations, GenerateInterceptors);
     }
 
@@ -163,12 +165,14 @@ public class InterceptorGenerator : IIncrementalGenerator
     /// Generates the <c>[InterceptsLocationAttribute]</c>
     /// </summary>
     /// <param name="ctx">Current <c>IncrementalGeneratorPostInitializationContext</c></param>
+    /// <param name="version">Library version</param>
     private void GenerateInterceptsLocationAttribute(
-        IncrementalGeneratorPostInitializationContext ctx)
+        SourceProductionContext ctx,
+        string version)
     {
         ctx.AddSource(
             "ChronoTrace.CompilerUtilities.g.cs",
-            new SourceGeneratorUtilities(_dependencies!.TimeProvider).MakeInterceptsLocationAttribute()
+            new SourceGeneratorUtilities(_dependencies!.TimeProvider, version).MakeInterceptsLocationAttribute()
         );
     }
 
@@ -177,31 +181,33 @@ public class InterceptorGenerator : IIncrementalGenerator
     /// invocations grouped by their parent class
     /// </summary>
     /// <param name="context">Current <c>SourceProductionContext</c></param>
-    /// <param name="interceptableInvocation">List of method invocations (grouped by their class)</param>
+    /// <param name="props">Tuple of the list of method invocations (grouped by their class) and the library version</param>
     private void GenerateInterceptors(
         SourceProductionContext context,
-        ImmutableArray<InterceptableMethodInvocations> interceptableInvocation)
+        (ImmutableArray<InterceptableMethodInvocations> Left, string Right) props)
     {
+        var (interceptableInvocation, version) = props;
         var generatedSources = new InterceptorSyntaxGenerator()
             .MakeMethodInterceptors(interceptableInvocation);
         context.AddSource(
             new GeneratedSourceFileNameProvider().GetHintName(interceptableInvocation.First().TargetMethod),
-            new SourceGeneratorUtilities(_dependencies!.TimeProvider).FormatCompilationUnitSyntax(generatedSources));
+            new SourceGeneratorUtilities(_dependencies!.TimeProvider, version).FormatCompilationUnitSyntax(generatedSources));
     }
 
     /// <summary>
     /// Generates the source files for configuring library settings.
     /// </summary>
     /// <param name="context">Current <c>SourceProductionContext</c></param>
-    /// <param name="outputPath">Desired setting value for the trace output path</param>
+    /// <param name="props">Tuple consisting of desired setting value for the trace output path and the library version</param>
     private void GenerateSettingsProvider(
         SourceProductionContext context,
-        string? outputPath)
+        (string? Left, string Right) props)
     {
-        var generatedSources = new SettingsProviderSyntaxGenerator()
+        var (outputPath, version) = props;
+        var generatedSources = new SettingsProviderSyntaxGenerator(version)
             .MakeSettingsProvider(outputPath);
         context.AddSource(
             $"{nameof(ProfilingSettingsProvider)}.g.cs",
-            new SourceGeneratorUtilities(_dependencies!.TimeProvider).FormatSourceCode(generatedSources));
+            new SourceGeneratorUtilities(_dependencies!.TimeProvider, version).FormatSourceCode(generatedSources));
     }
 }

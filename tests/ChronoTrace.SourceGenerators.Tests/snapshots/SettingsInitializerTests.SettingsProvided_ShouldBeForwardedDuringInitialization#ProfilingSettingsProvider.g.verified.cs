@@ -8,7 +8,7 @@
 // ║    This file should not be edited! Manual changes may cause incorrect behavior and will be overwritten.    ║
 // ║                                                                                                            ║
 // ╠════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-// ║    Generated: 2020-04-29 13:17:19 UTC                                                                      ║
+// ║    Generated: 2020-04-29 13:17:19 UTC                                      ChronoTrace version: Testing    ║
 // ╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 //
 // </auto-generated>
@@ -16,7 +16,7 @@
 
 namespace ChronoTrace.ProfilingInternals.Settings;
 
-[global::System.CodeDom.Compiler.GeneratedCodeAttribute("[ChronoTrace]", "[0.0.1-prealpha]")]
+[global::System.CodeDom.Compiler.GeneratedCodeAttribute("[ChronoTrace]", "[Testing]")]
 internal static class ProfilingSettingsInitializer
 {
     [global::System.Runtime.CompilerServices.ModuleInitializer]
