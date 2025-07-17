@@ -8,7 +8,7 @@
 // ║    This file should not be edited! Manual changes may cause incorrect behavior and will be overwritten.    ║
 // ║                                                                                                            ║
 // ╠════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-// ║    Generated: 2020-04-29 13:17:19 UTC                                                                      ║
+// ║    Generated: 2020-04-29 13:17:19 UTC                                      ChronoTrace version: Testing    ║
 // ╚════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 //
 // </auto-generated>
