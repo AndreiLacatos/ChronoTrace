@@ -27,15 +27,13 @@ internal class InterceptorSyntaxGenerator
     private const string InvocationIdVariableName = "methodInvocationId";
     private const string ProfilingContextVariableName = "profilingContext";
     
-    private readonly Logger _logger;
     private readonly GeneratedNamespaceProvider _generatedNamespaceProvider;
     private readonly InterceptorClassNameProvider _interceptorClassNameProvider;
     private readonly InterceptorHandlerNameProvider _interceptorHandlerNameProvider;
     private readonly GeneratedVariableNameConverter _variableNameConverter;
 
-    internal InterceptorSyntaxGenerator(Logger logger)
+    internal InterceptorSyntaxGenerator()
     {
-        _logger = logger;
         _generatedNamespaceProvider = new GeneratedNamespaceProvider();
         _interceptorClassNameProvider = new InterceptorClassNameProvider();
         _interceptorHandlerNameProvider = new InterceptorHandlerNameProvider();
@@ -59,10 +57,6 @@ internal class InterceptorSyntaxGenerator
     /// </returns>
     internal CompilationUnitSyntax MakeMethodInterceptors(ImmutableArray<InterceptableMethodInvocations> invocations)
     {
-        var className = invocations.First().TargetMethod.ContainingType.Name;
-        var methodName = invocations.First().TargetMethod.Name;
-        _logger.Info($"Generating interceptor for {className}.{methodName}");
-
         // add necessary using statements
         // add using System.Runtime.CompilerServices; required by InterceptsLocation attribute
         var compilationUnit = CompilationUnit()
@@ -101,7 +95,6 @@ internal class InterceptorSyntaxGenerator
             .WithMembers(SingletonList<MemberDeclarationSyntax>(
                 namespaceDeclaration.WithMembers(SingletonList<MemberDeclarationSyntax>(classDeclaration))));
 
-        _logger.Flush();
         return compilationUnit;
     }
 
@@ -156,14 +149,14 @@ internal class InterceptorSyntaxGenerator
         }
         interceptorMethod = interceptorMethod.WithModifiers(methodModifierTokens);
 
-        // add parameters, the first is always the extended type
+        // add parameters; the first is always the extended type
         // "this SubjectClass subject", unless the intercepted method is static
         var parameters = new List<ParameterSyntax>();
         var syntaxNodeOrTokenList = new List<SyntaxNodeOrToken>();
 
         if (!invocations.TargetMethod.IsStatic)
         {
-            // get the fully qualified name of the containing type, i.e. parent class, of the method being intercepted.
+            // get the fully qualified name of the containing type, i.e., parent class, of the method being intercepted.
             var instanceTypeName = invocations.TargetMethod.ContainingType.ToDisplayString(symbolDisplayFormat);
             parameters.Add(
                 Parameter(Identifier(_variableNameConverter.ToGeneratedVariableName(ProfiledSubjectVariableName)))
@@ -373,12 +366,9 @@ internal class InterceptorSyntaxGenerator
         MethodDeclarationSyntax interceptorMethod)
     {
         // create an InterceptsLocation for each invocation location of the target method
-        _logger.Debug($"Has {invocations.Locations.Count()} interceptable invocation(s)");
         var attributes = new List<AttributeListSyntax>();
-        foreach (var (invocationLocation, interceptableLocation) in invocations.Locations)
+        foreach (var (_, interceptableLocation) in invocations.Locations)
         {
-            _logger.Debug($"\tInvoked at {invocationLocation.SourceTree?.FilePath ?? "Unknown file"} " +
-                $"{invocationLocation.GetLineSpan().Span}");
             var attribute = MakeInterceptsLocationAttribute(interceptableLocation);
             attributes.Add(
                 AttributeList(

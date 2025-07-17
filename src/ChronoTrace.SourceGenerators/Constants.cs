@@ -23,11 +23,6 @@ internal static class Constants
         internal const string SolutionDir = "build_property.SolutionDir";
 
         /// <summary>
-        /// Roslyn analyzer config option name for debug logger level.
-        /// </summary>
-        internal const string LogLevel = "build_property.ChronoTraceGeneratorsLogLevel";
-
-        /// <summary>
         /// Roslyn analyzer config option name for trace log output path.
         /// </summary>
         internal const string TimingOutputPath = "build_property.ChronoTraceTimingOutput";

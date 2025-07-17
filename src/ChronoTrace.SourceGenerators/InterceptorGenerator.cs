@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using ChronoTrace.ProfilingInternals.Settings;
 using ChronoTrace.SourceGenerators.DataStructures;
 using ChronoTrace.SourceGenerators.IncrementalValueProviderExtensions;
 using ChronoTrace.SourceGenerators.SourceGenerator;
@@ -17,15 +18,13 @@ public class InterceptorGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         ConfigureDependencies(GeneratorDependencies.Default);
-        var loggerProvider = context.AnalyzerConfigOptionsProvider.CreateLoggerProvider();
         var outputPathProvider = context.AnalyzerConfigOptionsProvider.CreateTraceOutputPathProvider();
 
         var trackedMethodInvocations = GroupInvocationsByClass( 
             GroupInvocationsByMethod(
                 SelectTrackedMethodInvocations(
                     SelectMethodInvocations(context.SyntaxProvider),
-                    SelectAttributedMethods(context.SyntaxProvider))))
-            .EnrichWithLogger(loggerProvider);
+                    SelectAttributedMethods(context.SyntaxProvider))));
 
         context.RegisterPostInitializationOutput(GenerateInterceptsLocationAttribute);
         context.RegisterSourceOutput(outputPathProvider, GenerateSettingsProvider);
@@ -178,13 +177,12 @@ public class InterceptorGenerator : IIncrementalGenerator
     /// invocations grouped by their parent class
     /// </summary>
     /// <param name="context">Current <c>SourceProductionContext</c></param>
-    /// <param name="enrichedInvocation">List of method invocations (grouped by their class), accompanied by debug logger</param>
+    /// <param name="interceptableInvocation">List of method invocations (grouped by their class)</param>
     private void GenerateInterceptors(
         SourceProductionContext context,
-        (ImmutableArray<InterceptableMethodInvocations>, Logger) enrichedInvocation)
+        ImmutableArray<InterceptableMethodInvocations> interceptableInvocation)
     {
-        var (interceptableInvocation, logger) = enrichedInvocation;
-        var generatedSources = new InterceptorSyntaxGenerator(logger)
+        var generatedSources = new InterceptorSyntaxGenerator()
             .MakeMethodInterceptors(interceptableInvocation);
         context.AddSource(
             new GeneratedSourceFileNameProvider().GetHintName(interceptableInvocation.First().TargetMethod),
@@ -203,7 +201,7 @@ public class InterceptorGenerator : IIncrementalGenerator
         var generatedSources = new SettingsProviderSyntaxGenerator()
             .MakeSettingsProvider(outputPath);
         context.AddSource(
-            "ProfilingSettingsProvider.g.cs",
+            $"{nameof(ProfilingSettingsProvider)}.g.cs",
             new SourceGeneratorUtilities(_dependencies!.TimeProvider).FormatSourceCode(generatedSources));
     }
 }
