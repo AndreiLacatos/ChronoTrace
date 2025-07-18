@@ -21,7 +21,7 @@ public class AsynchronousMethodInterceptorTests
             await subject.Do();
             """;
 
-        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+        var (driver, _) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -44,7 +44,7 @@ public class AsynchronousMethodInterceptorTests
             await subject.Do();
             """;
 
-        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+        var (driver, _) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -68,7 +68,7 @@ public class AsynchronousMethodInterceptorTests
             await subject.Do();
             """;
 
-        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+        var (driver, _) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -92,7 +92,7 @@ public class AsynchronousMethodInterceptorTests
             await subject.Do();
             """;
 
-        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+        var (driver, _) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -115,7 +115,7 @@ public class AsynchronousMethodInterceptorTests
             await subject.Do(default, default, default);
             """;
 
-        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+        var (driver, _) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -144,7 +144,7 @@ public class AsynchronousMethodInterceptorTests
             await subject.DoSomethingElse();
             """;
 
-        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+        var (driver, _) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 
@@ -176,7 +176,7 @@ public class AsynchronousMethodInterceptorTests
             await subject.Do();
             """;
 
-        var driver = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+        var (driver, _) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 }

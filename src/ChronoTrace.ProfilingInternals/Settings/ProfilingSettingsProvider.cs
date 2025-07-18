@@ -1,8 +1,12 @@
+using ChronoTrace.ProfilingInternals.Protection;
+
 namespace ChronoTrace.ProfilingInternals.Settings;
 
 /// <summary>
 /// Provides access to static settings of the <c>ChronoTrace</c> profiler.
 /// </summary>
+[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+[LibraryUsage]
 public static class ProfilingSettingsProvider
 {
     /* 
@@ -47,6 +51,8 @@ public static class ProfilingSettingsProvider
     /// </para>
     /// </remarks>
     /// <param name="settings">Desired settings</param>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [LibraryUsage]
     public static void UpdateSettings(ProfilingSettings settings)
     {
         _settings = settings;

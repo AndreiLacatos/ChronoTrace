@@ -9,7 +9,7 @@ public class SettingsInitializerTests
         {
             { "build_property.ChronoTraceTimingOutput", @"dir\sub-dir\timing-report-file.json" },
         });
-        var driver = SourceGenerationRunner.Run(string.Empty, analyzerOptionsProvider);
+        var (driver, _) = SourceGenerationRunner.Run(string.Empty, analyzerOptionsProvider);
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
 }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using ChronoTrace.ProfilingInternals.DataExport;
+using ChronoTrace.ProfilingInternals.Protection;
 
 namespace ChronoTrace.ProfilingInternals;
 
@@ -21,6 +22,8 @@ namespace ChronoTrace.ProfilingInternals;
 ///   The <c>ChronoTrace</c> library manages the lifecycle and usage of this context internally.
 /// </para>
 /// </remarks>
+[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+[LibraryUsage]
 public sealed class ProfilingContext
 {
     private readonly SemaphoreSlim _semaphore;
@@ -45,6 +48,8 @@ public sealed class ProfilingContext
     /// </summary>
     /// <param name="methodName">The name of the method being profiled.</param>
     /// <returns>A unique invocation ID for this specific method call instance.</returns>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [LibraryUsage]
     public ushort BeginMethodProfiling(string methodName)
     {
         if (string.IsNullOrWhiteSpace(methodName))
@@ -80,6 +85,8 @@ public sealed class ProfilingContext
     /// It's crucial that <paramref name="invocationId"/> corresponds to an active profiling session
     /// started by <see cref="BeginMethodProfiling"/>.
     /// </remarks>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [LibraryUsage]
     public void EndMethodProfiling(ushort invocationId)
     {
         var currentTicks = Stopwatch.GetTimestamp();
@@ -113,6 +120,8 @@ public sealed class ProfilingContext
     /// this method will return without processing traces to avoid data loss.
     /// </para>
     /// </remarks>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [LibraryUsage]
     public void CollectTraces()
     {
         _semaphore.Wait();

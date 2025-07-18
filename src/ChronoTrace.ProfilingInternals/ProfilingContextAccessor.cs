@@ -1,4 +1,5 @@
 using ChronoTrace.ProfilingInternals.DataExport.Json;
+using ChronoTrace.ProfilingInternals.Protection;
 using ChronoTrace.ProfilingInternals.Settings;
 
 namespace ChronoTrace.ProfilingInternals;
@@ -17,6 +18,8 @@ namespace ChronoTrace.ProfilingInternals;
 ///   The <c>ChronoTrace</c> library manages the context lifecycle via this accessor for its internal operations.
 /// </para>
 /// </remarks>
+[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+[LibraryUsage]
 public sealed class ProfilingContextAccessor
 {
     private static readonly AsyncLocal<ProfilingContext?> Context = new AsyncLocal<ProfilingContext?>();
@@ -31,6 +34,8 @@ public sealed class ProfilingContextAccessor
     /// </para>
     /// </remarks>
     /// <returns>The <see cref="ProfilingContext"/> for the current asynchronous scope.</returns>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [LibraryUsage]
     public static ProfilingContext Current
     {
         get

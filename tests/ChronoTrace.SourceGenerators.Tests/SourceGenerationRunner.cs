@@ -1,4 +1,8 @@
+using System.Collections.Immutable;
+using Basic.Reference.Assemblies;
 using ChronoTrace.Attributes;
+using ChronoTrace.ProfilingInternals;
+using ChronoTrace.SourceGenerators.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -8,18 +12,20 @@ namespace ChronoTrace.SourceGenerators.Tests;
 
 internal static class SourceGenerationRunner
 {
-    internal static GeneratorDriver Run(string source, AnalyzerConfigOptionsProvider? optionsProvider = null)
+    internal static (GeneratorDriver runResult, ImmutableArray<Diagnostic> diagnostics) Run(
+        string source,
+        AnalyzerConfigOptionsProvider? optionsProvider = null)
     {
         // create a syntax tree from the input source code
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
 
         // list the assemblies that the source code references, add system base dll 
         // and the dll containing the definition of ProfileAttribute
-        IEnumerable<PortableExecutableReference> references =
+        var references = ReferenceAssemblies.Get(ReferenceAssemblyKind.Net80).Union( 
         [
-            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(ProfileAttribute).Assembly.Location),
-        ];
+            MetadataReference.CreateFromFile(typeof(ProfilingContext).Assembly.Location),
+        ]);
 
         // create a Roslyn compilation unit for the syntax tree
         var compilation = CSharpCompilation.Create(
@@ -42,6 +48,17 @@ internal static class SourceGenerationRunner
         {
             driver = driver.WithUpdatedAnalyzerConfigOptions(optionsProvider);
         }
-        return driver.RunGenerators(compilation);
+        
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult();
+        var compilationAfterGenerator = compilation.AddSyntaxTrees(runResult.GeneratedTrees);
+        var analyzer = new InternalApiUsageGuard();
+
+        var diagnostics = compilationAfterGenerator
+            .WithAnalyzers([analyzer])
+            .GetAnalyzerDiagnosticsAsync()
+            .Result;
+
+        return (driver, diagnostics);
     }
 }
