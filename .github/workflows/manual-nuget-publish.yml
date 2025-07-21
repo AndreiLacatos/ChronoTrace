@@ -1,5 +1,5 @@
 # This workflow is intended for short term use!
-# It takes the dev branch of the repository, builds the package & pushes it to NuGet
+# It takes the master branch of the repository, builds the package & pushes it to NuGet
 
 name: Manual NuGet Package Publish
 on:
@@ -8,10 +8,10 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout dev branch
+      - name: Checkout master branch
         uses: actions/checkout@v4
         with:
-          ref: dev
+          ref: master
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
