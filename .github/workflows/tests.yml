@@ -25,10 +25,10 @@ jobs:
         run: dotnet build ./src --configuration Release --no-restore
 
       - name: Run core tests
-        run: dotnet test ./tests/ChronoTrace.ProfilingInternals.Tests/ChronoTrace.ProfilingInternals.Tests.csproj --no-build --verbosity normal
+        run: dotnet test ./tests/ChronoTrace.ProfilingInternals.Tests/ChronoTrace.ProfilingInternals.Tests.csproj --verbosity normal
 
       - name: Run source generator tests
-        run: dotnet test ./tests/ChronoTrace.SourceGenerators.Tests/ChronoTrace.SourceGenerators.Tests.csproj --no-build --verbosity normal
+        run: dotnet test ./tests/ChronoTrace.SourceGenerators.Tests/ChronoTrace.SourceGenerators.Tests.csproj --verbosity normal
 
       - name: Run E2E tests
         run: |
