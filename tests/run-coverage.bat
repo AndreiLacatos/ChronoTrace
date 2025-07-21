@@ -18,8 +18,7 @@ set CONFIGURATION=Debug
 set OUTPUT_REPORT=coverage\report.html
 set COVERAGE_FILTERS=^
 +:assembly=ChronoTrace.SourceGenerators;^
-+:assembly=ChronoTrace.ProfilingInternals;^
--:class=ChronoTrace.SourceGenerators.Logger;
++:assembly=ChronoTrace.ProfilingInternals;
 
 for /F "delims=" %%a in ('echo prompt $E^|cmd') do set "ESC=%%a"
 set "ColorGreen=%ESC%[92m"

@@ -17,7 +17,7 @@ set -e
 
 CONFIGURATION="Debug"
 OUTPUT_REPORT="coverage/report.html"
-COVERAGE_FILTERS="+:assembly=ChronoTrace.SourceGenerators;+:assembly=ChronoTrace.ProfilingInternals;-:class=ChronoTrace.SourceGenerators.Logger"
+COVERAGE_FILTERS="+:assembly=ChronoTrace.SourceGenerators;+:assembly=ChronoTrace.ProfilingInternals"
 
 # --- ANSI Color Codes ---
 COLOR_GREEN='\033[92m'

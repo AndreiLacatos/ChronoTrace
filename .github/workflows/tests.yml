@@ -1,0 +1,33 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./src
+
+      - name: Build solution/project
+        run: dotnet build ./src --configuration Release --no-restore
+
+      - name: Run core tests
+        run: dotnet test ./tests/ChronoTrace.ProfilingInternals.Tests/ChronoTrace.ProfilingInternals.Tests.csproj --no-build --verbosity normal
+
+      - name: Run source generator tests
+        run: dotnet test ./tests/ChronoTrace.SourceGenerators.Tests/ChronoTrace.SourceGenerators.Tests.csproj --no-build --verbosity normal
+
+      - name: Run E2E tests
+        run: |
+          chmod +x tests/ChronoTrace.E2ETests/run-e2e.sh
+          ./tests/ChronoTrace.E2ETests/run-e2e.sh
