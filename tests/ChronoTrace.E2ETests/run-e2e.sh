@@ -5,19 +5,29 @@
 #
 # Description:
 #   This script runs e2e tests. It relies on the locally published NuGet package.
+#   It detects whether it's being run from the root or the test folder.
 #
 # Usage:
 #   ./run-e2e.sh
 #
 # =================================================================================
 
-# Exit immediately if a command returns a non-zero status.
 set -e
 
 CONFIGURATION="Release"
 NUGET_CONFIG_FILE="nuget.e2e.config"
 LOCAL_PACKAGE_CACHE_FOLDER="packages"
 TIMING_OUTPUT_FOLDER="timings"
+
+# Detect if running from project root; if so, cd to tests/ChronoTrace.E2ETests
+if [ ! -f "ChronoTrace.E2ETests.csproj" ]; then
+  if [ -f "tests/ChronoTrace.E2ETests/ChronoTrace.E2ETests.csproj" ]; then
+    cd tests/ChronoTrace.E2ETests
+  else
+    echo "ERROR: Could not locate ChronoTrace.E2ETests.csproj."
+    exit 1
+  fi
+fi
 
 COLOR_GREEN='\033[92m'
 COLOR_RESET='\033[0m'

@@ -7,6 +7,7 @@ setlocal
 ::
 :: Description:
 ::   This script runs e2e tests. It relies on the locally published NuGet package.
+::   It detects whether it's being run from the root or the test folder.
 ::
 :: Usage:
 ::   run-e2e.bat
@@ -18,6 +19,17 @@ set NUGET_CONFIG_FILE=nuget.e2e.config
 set LOCAL_PACKAGE_CACHE_FOLDER=packages
 set TIMING_OUTPUT_FOLDER=timings
 
+:: Detect if running from project root; if so, cd to tests\ChronoTrace.E2ETests
+if not exist "ChronoTrace.E2ETests.csproj" (
+    if exist "tests\ChronoTrace.E2ETests\ChronoTrace.E2ETests.csproj" (
+        cd tests\ChronoTrace.E2ETests
+    ) else (
+        echo ERROR: Could not locate ChronoTrace.E2ETests.csproj.
+        goto :eof
+    )
+)
+
+:: Set up colors
 for /F "delims=" %%a in ('echo prompt $E^|cmd') do set "ESC=%%a"
 set "ColorGreen=%ESC%[92m"
 set "ColorReset=%ESC%[0m"
