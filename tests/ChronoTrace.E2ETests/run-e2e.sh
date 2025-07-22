@@ -71,7 +71,7 @@ if [ -d "${LOCAL_PACKAGE_CACHE_FOLDER}" ]; then
     rm -rf "${LOCAL_PACKAGE_CACHE_FOLDER}"
 fi
 
-dotnet test ChronoTrace.E2ETests.csproj -c "${CONFIGURATION}"
+dotnet test ChronoTrace.E2ETests.csproj -c "${CONFIGURATION}" --no-restore
 
 if [ -d "${TIMING_OUTPUT_FOLDER}" ]; then
     rm -rf "${TIMING_OUTPUT_FOLDER}"

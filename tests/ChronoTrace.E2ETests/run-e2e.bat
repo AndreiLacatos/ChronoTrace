@@ -76,7 +76,7 @@ if exist "%TIMING_OUTPUT_FOLDER%" (
 if exist "%LOCAL_PACKAGE_CACHE_FOLDER%" (
     rmdir /s /q "%LOCAL_PACKAGE_CACHE_FOLDER%"
 )
-call dotnet test ChronoTrace.E2ETests.csproj -c %CONFIGURATION%
+call dotnet test ChronoTrace.E2ETests.csproj -c %CONFIGURATION% --no-restore
 if exist "%TIMING_OUTPUT_FOLDER%" (
     rmdir /s /q "%TIMING_OUTPUT_FOLDER%"
 )
