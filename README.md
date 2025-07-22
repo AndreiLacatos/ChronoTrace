@@ -1,5 +1,7 @@
 # ChronoTrace
 
+![Build & Test](https://github.com/AndreiLacatos/ChronoTrace/actions/workflows/tests.yml/badge.svg?branch=master)
+
 A package for simple, function-level performance tracing.
 
 Ever found yourself hunting down performance bottlenecks? Manually wrapping methods with `Stopwatch` code to pinpoint slow sections is tedious and error-prone.
