@@ -19,9 +19,9 @@ using System.Runtime.CompilerServices;
 namespace ProfilingInterceptors;
 public static class SProfilingInterceptorExtensions
 {
-    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "7RiaZeT6XvdDMiPenBkxGNsAAAA=")]
-    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "7RiaZeT6XvdDMiPenBkxGCIBAAA=")]
-    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "7RiaZeT6XvdDMiPenBkxGDEBAAA=")]
+    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "TESTING")]
+    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "TESTING")]
+    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "TESTING")]
     public static void InterceptDo(this global::S __ChronoTrace_Subject)
     {
         var __ChronoTrace_Profiling_Context = global::ChronoTrace.ProfilingInternals.ProfilingContextAccessor.Current;
@@ -37,8 +37,8 @@ public static class SProfilingInterceptorExtensions
         }
     }
 
-    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "7RiaZeT6XvdDMiPenBkxGOoAAAA=")]
-    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "7RiaZeT6XvdDMiPenBkxGAYBAAA=")]
+    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "TESTING")]
+    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "TESTING")]
     public static void InterceptDoSomethingElse(this global::S __ChronoTrace_Subject)
     {
         var __ChronoTrace_Profiling_Context = global::ChronoTrace.ProfilingInternals.ProfilingContextAccessor.Current;

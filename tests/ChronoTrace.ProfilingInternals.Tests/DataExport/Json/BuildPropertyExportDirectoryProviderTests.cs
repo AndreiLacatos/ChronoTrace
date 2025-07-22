@@ -1,4 +1,5 @@
 using ChronoTrace.ProfilingInternals.DataExport.Json;
+using ChronoTrace.ProfilingInternals.Tests.XunitExtensions.PlatformAwareDataAttributes;
 using Shouldly;
 
 namespace ChronoTrace.ProfilingInternals.Tests.DataExport.Json;
@@ -6,8 +7,8 @@ namespace ChronoTrace.ProfilingInternals.Tests.DataExport.Json;
 public class BuildPropertyExportDirectoryProviderTests
 {
     [Theory]
-    [InlineData(@"C:\temp\traces\output\")]
-    [InlineData("/var/log/traces/output/")]
+    [WindowsData(@"C:\temp\traces\output\")]
+    [LinuxData("/var/log/traces/output/")]
     public void GetExportDirectory_WithFullPath_ShouldReturnFullPath(string fullPath)
     {
         // Arrange
@@ -21,7 +22,8 @@ public class BuildPropertyExportDirectoryProviderTests
     }
 
     [Theory]
-    [InlineData(@"logs\traces\")]
+    [WindowsData(@"logs\traces\")]
+    [LinuxData("/logs/traces/")]
     public void GetExportDirectory_WithRelativePath_ShouldReturnRelativePath(string relativePath)
     {
         // Arrange
@@ -34,18 +36,19 @@ public class BuildPropertyExportDirectoryProviderTests
         result.ShouldBe(relativePath);
     }
 
-    [Fact]
-    public void GetExportDirectory_WithDirectoryNameOnly_ShouldReturnSameDirectory()
+    [Theory]
+    [WindowsData(@"traces\")]
+    [LinuxData("traces/")]
+    public void GetExportDirectory_WithDirectoryNameOnly_ShouldReturnSameDirectory(string directoryName)
     {
         // Arrange
-        var directoryName = @"traces\";
         var provider = new BuildPropertyExportDirectoryProvider(directoryName);
 
         // Act
         var result = provider.GetExportDirectory();
 
         // Assert
-        result.ShouldBe(@"traces\");
+        result.ShouldBe(directoryName);
     }
 
     [Fact]
@@ -62,11 +65,12 @@ public class BuildPropertyExportDirectoryProviderTests
         result.ShouldBe(string.Empty);
     }
 
-    [Fact]
-    public void GetExportDirectory_CalledMultipleTimes_ShouldReturnConsistentResult()
+    [Theory]
+    [WindowsData(@"C:\logs\traces\")]
+    [LinuxData("/var/logs/traces/")]
+    public void GetExportDirectory_CalledMultipleTimes_ShouldReturnConsistentResult(string path)
     {
         // Arrange
-        var path = @"C:\logs\traces\";
         var provider = new BuildPropertyExportDirectoryProvider(path);
 
         // Act
@@ -75,21 +79,21 @@ public class BuildPropertyExportDirectoryProviderTests
         var result3 = provider.GetExportDirectory();
 
         // Assert
-        result1.ShouldBe(@"C:\logs\traces\");
-        result2.ShouldBe(@"C:\logs\traces\");
-        result3.ShouldBe(@"C:\logs\traces\");
+        result1.ShouldBe(path);
+        result2.ShouldBe(path);
+        result3.ShouldBe(path);
         result1.ShouldBe(result2);
         result2.ShouldBe(result3);
     }
 
     [Theory]
-    [InlineData(@"C:\Program Files\MyApp\logs\")]
-    [InlineData(@"C:\logs with spaces\traces\")]
-    [InlineData(@"logs-with-dashes\")]
-    [InlineData("logs-with-dashes/")]
-    [InlineData("logs.with.dots/")]
-    [InlineData(@"logs.with.dots\")]
-    [InlineData("logs_with_underscores/")]
+    [WindowsData(@"C:\Program Files\MyApp\logs\")]
+    [WindowsData(@"C:\logs with spaces\traces\")]
+    [WindowsData(@"logs-with-dashes\")]
+    [WindowsData(@"logs.with.dots\")]
+    [LinuxData("logs-with-dashes/")]
+    [LinuxData("logs.with.dots/")]
+    [LinuxData("logs_with_underscores/")]
     public void GetExportDirectory_WithVariousDirectoryNames_ShouldReturnExactPath(string directoryPath)
     {
         // Arrange

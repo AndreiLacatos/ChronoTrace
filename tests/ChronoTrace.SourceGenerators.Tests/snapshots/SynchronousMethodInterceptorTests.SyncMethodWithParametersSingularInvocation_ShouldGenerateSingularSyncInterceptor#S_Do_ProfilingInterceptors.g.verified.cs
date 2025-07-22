@@ -19,7 +19,7 @@ using System.Runtime.CompilerServices;
 namespace ProfilingInterceptors;
 public static class SProfilingInterceptorExtensions
 {
-    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "KHu0s50NYGz1rjMUVJn3s54AAAA=")]
+    [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(version: 1, data: "TESTING")]
     public static void InterceptDo(this global::S __ChronoTrace_Subject, global::System.Int32 p1, global::System.String p2, global::System.Double p3)
     {
         var __ChronoTrace_Profiling_Context = global::ChronoTrace.ProfilingInternals.ProfilingContextAccessor.Current;

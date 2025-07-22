@@ -1,4 +1,5 @@
 using ChronoTrace.ProfilingInternals.DataExport.Json;
+using ChronoTrace.ProfilingInternals.Tests.XunitExtensions.PlatformAwareDataAttributes;
 using Shouldly;
 
 namespace ChronoTrace.ProfilingInternals.Tests.DataExport.Json;
@@ -6,8 +7,8 @@ namespace ChronoTrace.ProfilingInternals.Tests.DataExport.Json;
 public class BuildPropertyJsonFileNameProviderTests
 {
     [Theory]
-    [InlineData(@"C:\temp\traces\output.json")]
-    [InlineData("/var/log/traces/output.json")]
+    [WindowsData(@"C:\temp\traces\output.json")]
+    [LinuxData("/var/log/traces/output.json")]
     public void GetJsonFileName_WithFullPath_ShouldReturnOnlyFileName(string fullPath)
     {
         // Arrange
@@ -21,7 +22,8 @@ public class BuildPropertyJsonFileNameProviderTests
     }
 
     [Theory]
-    [InlineData(@"logs\traces.json")]
+    [WindowsData(@"logs\traces.json")]
+    [LinuxData("logs/traces.json")]
     public void GetJsonFileName_WithRelativePath_ShouldReturnFileName(string relativePath)
     {
         // Arrange
@@ -62,11 +64,12 @@ public class BuildPropertyJsonFileNameProviderTests
         result.ShouldBe(string.Empty);
     }
 
-    [Fact]
-    public void GetJsonFileName_CalledMultipleTimes_ShouldReturnConsistentResult()
+    [Theory]
+    [WindowsData(@"C:\logs\traces.json")]
+    [LinuxData("/logs/traces.json")]
+    public void GetJsonFileName_CalledMultipleTimes_ShouldReturnConsistentResult(string path)
     {
         // Arrange
-        var path = @"C:\logs\traces.json";
         var provider = new BuildPropertyJsonFileNameProvider(path);
 
         // Act

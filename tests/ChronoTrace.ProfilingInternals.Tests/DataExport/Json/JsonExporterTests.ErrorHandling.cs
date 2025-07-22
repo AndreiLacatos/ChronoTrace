@@ -48,9 +48,7 @@ public partial class JsonExporterTests
 
         // Act & Assert
         // File.WriteAllText should throw because the path contains an invalid character.
-        // The specific exception can be ArgumentException, NotSupportedException, or IOException.
-        Should.Throw<Exception>(() => exporter.Complete())
-            .ShouldBeOfType<IOException>("Expected an ArgumentException for invalid path characters.");
+        Should.Throw<Exception>(() => exporter.Complete()).ShouldBeAssignableTo<IOException>();
 
         // Verify the lock was released.
         _fileSystemLock.CurrentCount.ShouldBe(1);

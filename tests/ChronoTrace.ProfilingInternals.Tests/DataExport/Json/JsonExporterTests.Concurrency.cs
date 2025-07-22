@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using ChronoTrace.ProfilingInternals.DataExport;
 using ChronoTrace.ProfilingInternals.DataExport.Json;
@@ -109,7 +110,7 @@ public partial class JsonExporterTests
         // Assert
         // 1. Verify that exactly one exception occurred (from the failing thread).
         exceptions.Count.ShouldBe(exportCount);
-        exceptions.ShouldAllBe(e => e.GetType() == typeof(IOException));
+        exceptions.ShouldAllBe(e => e is IOException);
 
         // 3. Verify the lock was ultimately released and is available.
         _fileSystemLock.CurrentCount.ShouldBe(1, "The lock must be released even after a thread fails.");
