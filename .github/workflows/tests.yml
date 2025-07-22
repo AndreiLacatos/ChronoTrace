@@ -7,7 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  build-and-test:
+  build-and-test-linux:
+    name: Build & Test (Linux)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout master branch
@@ -37,3 +38,35 @@ jobs:
         run: |
           chmod +x tests/ChronoTrace.E2ETests/run-e2e.sh
           ./tests/ChronoTrace.E2ETests/run-e2e.sh
+
+  build-and-test-windows:
+    name: Build & Test (Windows)
+    runs-on: windows-latest
+    needs: build-and-test-linux
+
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./src
+
+      - name: Build solution/project
+        run: dotnet build ./src --configuration Release --no-restore
+
+      - name: Run core tests
+        run: dotnet test ./tests/ChronoTrace.ProfilingInternals.Tests/ChronoTrace.ProfilingInternals.Tests.csproj
+
+      - name: Run source generator tests
+        run: dotnet test ./tests/ChronoTrace.SourceGenerators.Tests/ChronoTrace.SourceGenerators.Tests.csproj --property:SolutionDir=..
+
+      - name: Create NuGet package
+        run: dotnet pack ./src --configuration Release --no-build -o ./artifacts -p:PackageVersion=1.0.0
+
+      - name: Run E2E tests
+        run: tests\ChronoTrace.E2ETests\run-e2e.bat
