@@ -2,7 +2,7 @@ using System.Text.Json;
 using ChronoTrace.ProfilingInternals.DataExport;
 using ChronoTrace.ProfilingInternals.DataExport.FileRotation;
 using ChronoTrace.ProfilingInternals.DataExport.Json;
-using ChronoTrace.ProfilingInternals.Settings;
+using ChronoTrace.ProfilingInternals.Settings.DataExport;
 using NSubstitute;
 using Shouldly;
 
@@ -57,7 +57,7 @@ public partial class JsonExporterTests
     {
         // Arrange
         var outputPath = Path.Combine(_tempDirectory, "state-reset-test.json");
-        var settings = new ProfilingSettings { OutputPath = outputPath };
+        var settings = new JsonExporterSettings { OutputPath = outputPath };
         var exporter = JsonExporterFactory.MakeJsonExporter(settings);
 
         var firstCycleTrace = new Trace { MethodName = "FirstCycle.Method", ExecutionTime = TimeSpan.FromMilliseconds(479) };

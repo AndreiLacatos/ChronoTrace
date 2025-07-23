@@ -45,4 +45,12 @@ One more tiny step to make sure the compiler is aware of it:
     </ItemGroup>
 ```
 
+To write traces to `stdout` instead of a file, set the output path to stdout.
+```xml
+    <PropertyGroup>
+        <!-- ⬇️ That does the trick! ⬇️  -->
+        <ChronoTraceTimingOutput>stdout</ChronoTraceTimingOutput>
+    </PropertyGroup>
+```
+
 Your traces will now land exactly where you want them. 🎯

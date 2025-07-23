@@ -1,3 +1,5 @@
+using ChronoTrace.ProfilingInternals.DataExport.FileRotation;
+
 namespace ChronoTrace.ProfilingInternals.DataExport.Json;
 
 /// <summary>
