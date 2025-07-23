@@ -1,0 +1,56 @@
+name: Build & Test
+
+on:
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+  build-and-test-linux:
+    name: Build & Test (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./src
+
+      - name: Build solution/project
+        run: dotnet build ./src --configuration Release --no-restore
+
+      - name: Run core tests
+        run: dotnet test ./tests/ChronoTrace.ProfilingInternals.Tests/ChronoTrace.ProfilingInternals.Tests.csproj
+
+      - name: Run source generator tests
+        run: dotnet test ./tests/ChronoTrace.SourceGenerators.Tests/ChronoTrace.SourceGenerators.Tests.csproj --property:SolutionDir=..
+
+  build-and-test-windows:
+    name: Build & Test (Windows)
+    runs-on: windows-latest
+    needs: build-and-test-linux
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./src
+
+      - name: Build solution/project
+        run: dotnet build ./src --configuration Release --no-restore
+
+      - name: Run core tests
+        run: dotnet test ./tests/ChronoTrace.ProfilingInternals.Tests/ChronoTrace.ProfilingInternals.Tests.csproj
+
+      - name: Run source generator tests
+        run: dotnet test ./tests/ChronoTrace.SourceGenerators.Tests/ChronoTrace.SourceGenerators.Tests.csproj --property:SolutionDir=..
