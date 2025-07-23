@@ -1,5 +1,6 @@
 using ChronoTrace.ProfilingInternals.DataExport.FileRotation;
 using ChronoTrace.ProfilingInternals.Settings;
+using ChronoTrace.ProfilingInternals.Settings.DataExport;
 
 namespace ChronoTrace.ProfilingInternals.DataExport.Json;
 
@@ -13,9 +14,9 @@ internal static class JsonExporterFactory
     /// Creates and configures a <see cref="JsonExporter"/> based on the provided profiling settings.
     /// </summary>
     /// <param name="settings">The <see cref="ProfilingSettings"/> containing configuration,
-    /// particularly the <see cref="ProfilingSettings.OutputPath"/>.</param>
+    /// particularly the <see cref="JsonExporterSettings.OutputPath"/>.</param>
     /// <returns>A fully configured <see cref="JsonExporter"/> instance.</returns>
-    internal static JsonExporter MakeJsonExporter(ProfilingSettings settings)
+    internal static JsonExporter MakeJsonExporter(JsonExporterSettings settings)
     {
         var fileRotation = new DailyCounterFileRotationStrategy(TimeProvider.System);
         if (string.IsNullOrWhiteSpace(settings.OutputPath))

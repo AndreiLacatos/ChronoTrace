@@ -1,9 +1,8 @@
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using ChronoTrace.ProfilingInternals.DataExport;
 using ChronoTrace.ProfilingInternals.DataExport.Json;
-using ChronoTrace.ProfilingInternals.Settings;
+using ChronoTrace.ProfilingInternals.Settings.DataExport;
 using Shouldly;
 
 namespace ChronoTrace.ProfilingInternals.Tests.DataExport.Json;
@@ -23,7 +22,7 @@ public partial class JsonExporterTests
         {
             // Each thread gets its own exporter instance and its own unique data.
             var threadId = i;
-            var settings = new ProfilingSettings { OutputPath = Path.Combine(_tempDirectory, "trace.json") };
+            var settings = new JsonExporterSettings { OutputPath = Path.Combine(_tempDirectory, "trace.json") };
 
             tasks.Add(Task.Run(() =>
             {
@@ -82,7 +81,7 @@ public partial class JsonExporterTests
         var exceptions = new ConcurrentBag<Exception>();
 
         // Create the failing exporter first.
-        var failingSettings = new ProfilingSettings
+        var failingSettings = new JsonExporterSettings
         {
             OutputPath = Path.Combine(_tempDirectory, $"{string.Concat(Enumerable.Repeat("J", 6000))}.json"),
         };

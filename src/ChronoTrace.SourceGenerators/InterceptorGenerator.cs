@@ -204,8 +204,13 @@ public class InterceptorGenerator : IIncrementalGenerator
         (string? Left, string Right) props)
     {
         var (outputPath, version) = props;
+        var settings = new SettingsProviderSyntaxGenerator.ExportSettings(
+            outputPath?.Trim().Equals("stdout", StringComparison.InvariantCultureIgnoreCase) ?? false 
+                ? SettingsProviderSyntaxGenerator.TraceOutput.Stdout
+                : SettingsProviderSyntaxGenerator.TraceOutput.Json,
+            outputPath);
         var generatedSources = new SettingsProviderSyntaxGenerator(version)
-            .MakeSettingsProvider(outputPath);
+            .MakeSettingsProvider(settings);
         context.AddSource(
             $"{nameof(ProfilingSettingsProvider)}.g.cs",
             new SourceGeneratorUtilities(_dependencies!.TimeProvider, version).FormatSourceCode(generatedSources));

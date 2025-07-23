@@ -1,7 +1,7 @@
 using System.Text.Json;
 using ChronoTrace.ProfilingInternals.DataExport;
 using ChronoTrace.ProfilingInternals.DataExport.Json;
-using ChronoTrace.ProfilingInternals.Settings;
+using ChronoTrace.ProfilingInternals.Settings.DataExport;
 using Shouldly;
 
 namespace ChronoTrace.ProfilingInternals.Tests.DataExport.Json;
@@ -17,7 +17,7 @@ public class JsonExporterFactoryTests
         // Arrange
         var tempDirectory = Path.Combine(Path.GetTempPath(), $"ChronoTraceTests_{Guid.NewGuid()}");
         var outputPath = Path.Combine(tempDirectory, "trace-report.json");
-        var settings = new ProfilingSettings { OutputPath = outputPath };
+        var settings = new JsonExporterSettings{ OutputPath = outputPath };
         
         // Use the actual factory to create a fully configured exporter.
         var exporter = JsonExporterFactory.MakeJsonExporter(settings);
@@ -70,7 +70,7 @@ public class JsonExporterFactoryTests
     {
         // Arrange
         var tempDirectory = Path.Combine(Path.GetTempPath(), $"ChronoTraceTests_{Guid.NewGuid()}");
-        var settings = new ProfilingSettings { OutputPath = $"{tempDirectory}{Path.DirectorySeparatorChar}" };
+        var settings = new JsonExporterSettings { OutputPath = $"{tempDirectory}{Path.DirectorySeparatorChar}" };
         var defaultFileName = new StaticJsonFileNameProvider().GetJsonFileName();
 
         // Use the actual factory to create a fully configured exporter.
@@ -129,7 +129,7 @@ public class JsonExporterFactoryTests
     public void Complete_WhenCalledInSequence_CreatesCorrectJsonFileOnDiskAtDefaultLocation(string? outputPath)
     {
         // Arrange
-        var settings = new ProfilingSettings { OutputPath = outputPath };
+        var settings = new JsonExporterSettings { OutputPath = outputPath };
         var defaultOutputDirectory = new StaticExportDirectoryProvider().GetExportDirectory();
         var defaultFileName = new StaticJsonFileNameProvider().GetJsonFileName();
         if (Directory.Exists(defaultOutputDirectory))
