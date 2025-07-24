@@ -19,8 +19,8 @@
 
     <ItemGroup>
         <CompilerVisibleProperty Include="SolutionDir" />
-        <CompilerVisibleProperty Include="ChronoTraceGeneratorsLogLevel" />
         <CompilerVisibleProperty Include="ChronoTraceTimingOutput" />
+        <CompilerVisibleProperty Include="ChronoTraceSourceGenerationEnabled" />
     </ItemGroup>
 
 </Project>
