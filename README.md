@@ -36,3 +36,23 @@ public class Worker
     }
 }
 ```
+
+## Disable code generation
+
+Because the library relies on source generation and intercepting method invocations, runtime toggling of tracing is not supported. Instead, code generation can be turned off using build flags — but note that doing so requires a rebuild each time the setting is changed.
+
+To disable code generation, add the following to your `.csproj` file:
+```xml
+  <PropertyGroup>
+    <!-- ... -->
+    <ChronoTraceSourceGenerationEnabled>false</ChronoTraceSourceGenerationEnabled>
+  </PropertyGroup>
+```
+
+Alternatively, set it as build flag:
+
+```sh
+dotnet build MyProj.sln -p:ChronoTraceSourceGenerationEnabled=false
+```
+
+Note: build flags override settings in the `.csproj`!
