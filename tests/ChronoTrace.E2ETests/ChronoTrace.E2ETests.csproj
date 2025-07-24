@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <ChronoTraceTimingOutput>$(MSBuildProjectDirectory)\timings\report.json</ChronoTraceTimingOutput>
-    <InterceptorsNamespaces>$(InterceptorsNamespaces);ProfilingInterceptors</InterceptorsNamespaces>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +22,5 @@
 
   <ItemGroup>
       <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
-      <CompilerVisibleProperty Include="ChronoTraceTimingOutput" />
   </ItemGroup>
 </Project>

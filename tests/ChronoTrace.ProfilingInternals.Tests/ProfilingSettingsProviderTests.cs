@@ -1,4 +1,5 @@
 using ChronoTrace.ProfilingInternals.Settings;
+using ChronoTrace.ProfilingInternals.Settings.DataExport;
 using Shouldly;
 
 namespace ChronoTrace.ProfilingInternals.Tests;
@@ -29,7 +30,10 @@ public class ProfilingSettingsProviderTests
         var originalSettings = ProfilingSettingsProvider.GetSettings();
         var newSettings = new ProfilingSettings
         {
-            OutputPath = "CustomOutputPath",
+            DataExportSettings = new JsonExporterSettings
+            {
+                OutputPath = "CustomOutputPath",
+            },
         };
         
         // Act
@@ -67,7 +71,10 @@ public class ProfilingSettingsProviderTests
         // Arrange
         var customSettings = new ProfilingSettings
         {
-            OutputPath = "CustomPath", 
+            DataExportSettings = new JsonExporterSettings
+            {
+                OutputPath = "CustomPath",
+            },
         };
        
         // Act

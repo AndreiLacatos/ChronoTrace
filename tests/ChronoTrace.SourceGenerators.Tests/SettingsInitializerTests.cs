@@ -12,4 +12,15 @@ public class SettingsInitializerTests
         var (driver, _) = SourceGenerationRunner.Run(string.Empty, analyzerOptionsProvider);
         await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
     }
+
+    [Fact]
+    public async Task SettingsProvided_StdoutKeywordAsOutputPath_ShouldCreateStdoutSettings()
+    {
+        var analyzerOptionsProvider = new MockAnalyzerConfigOptionsProvider(new Dictionary<string, string>
+        {
+            { "build_property.ChronoTraceTimingOutput", "stdout" },
+        });
+        var (driver, _) = SourceGenerationRunner.Run(string.Empty, analyzerOptionsProvider);
+        await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
+    }
 }

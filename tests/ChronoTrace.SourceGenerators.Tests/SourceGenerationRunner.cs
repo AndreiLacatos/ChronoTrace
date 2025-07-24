@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Basic.Reference.Assemblies;
 using ChronoTrace.Attributes;
 using ChronoTrace.ProfilingInternals;
 using ChronoTrace.SourceGenerators.Analyzers;
@@ -21,7 +20,7 @@ internal static class SourceGenerationRunner
 
         // list the assemblies that the source code references, add system base dll 
         // and the dll containing the definition of ProfileAttribute
-        var references = ReferenceAssemblies.Get(ReferenceAssemblyKind.Net80).Union( 
+        var references = Basic.Reference.Assemblies.Net90.References.All.Union( 
         [
             MetadataReference.CreateFromFile(typeof(ProfileAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(ProfilingContext).Assembly.Location),

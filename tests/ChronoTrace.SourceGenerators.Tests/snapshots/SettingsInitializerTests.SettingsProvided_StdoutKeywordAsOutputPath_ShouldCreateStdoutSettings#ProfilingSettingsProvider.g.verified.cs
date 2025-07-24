@@ -22,10 +22,7 @@ internal static class ProfilingSettingsInitializer
     [global::System.Runtime.CompilerServices.ModuleInitializer]
     internal static void Initialize()
     {
-        var dataExportSettings = new global::ChronoTrace.ProfilingInternals.Settings.DataExport.JsonExporterSettings
-        {
-            OutputPath = @"",
-        };
+        var dataExportSettings = new global::ChronoTrace.ProfilingInternals.Settings.DataExport.StdoutExportSettings();
         var settings = new global::ChronoTrace.ProfilingInternals.Settings.ProfilingSettings
         {
             DataExportSettings = dataExportSettings,

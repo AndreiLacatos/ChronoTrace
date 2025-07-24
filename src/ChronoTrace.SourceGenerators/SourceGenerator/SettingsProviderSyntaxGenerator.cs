@@ -7,6 +7,18 @@ namespace ChronoTrace.SourceGenerators.SourceGenerator;
 /// </summary>
 internal sealed class SettingsProviderSyntaxGenerator
 {
+    internal enum TraceOutput
+    {
+        Stdout,
+        Json,
+    }
+
+    /// <summary>
+    /// Defines trace data export configuration
+    /// </summary>
+    /// <param name="Output">Whether to output traces to stdout</param>
+    /// <param name="OutputPath">Desired file output path</param>
+    internal sealed record ExportSettings(TraceOutput Output, string? OutputPath);
     private readonly string _version;
 
     public SettingsProviderSyntaxGenerator(string version)
@@ -17,12 +29,21 @@ internal sealed class SettingsProviderSyntaxGenerator
     /// <summary>
     /// Generates the C# source code for the <c>ProfilingSettingsInitializer</c> class.
     /// </summary>
-    /// <param name="outputPath">
-    /// The output path to be embedded into the generated code.
-    /// </param>
+    /// <param name="exportSettings">Defines trace data export configuration.</param>
     /// <returns>A string containing the C# source code for the settings initializer class.</returns>
-    internal string MakeSettingsProvider(string? outputPath)
+    internal string MakeSettingsProvider(ExportSettings exportSettings)
     {
+        var exportSettingsDeclaration = exportSettings.Output switch
+        {
+            TraceOutput.Json => $$"""
+                                  var dataExportSettings = new global::ChronoTrace.ProfilingInternals.Settings.DataExport.JsonExporterSettings
+                                          {
+                                              OutputPath = @"{{exportSettings.OutputPath}}",
+                                          };
+                                  """,
+            _ => "var dataExportSettings = new global::ChronoTrace.ProfilingInternals.Settings.DataExport.StdoutExportSettings();",
+        };
+
         return $$"""
                namespace ChronoTrace.ProfilingInternals.Settings;
                
@@ -32,9 +53,10 @@ internal sealed class SettingsProviderSyntaxGenerator
                    [global::System.Runtime.CompilerServices.ModuleInitializer]
                    internal static void Initialize()
                    {
+                       {{exportSettingsDeclaration}}
                        var settings = new global::ChronoTrace.ProfilingInternals.Settings.ProfilingSettings
                        {
-                           OutputPath = @"{{outputPath}}",
+                           DataExportSettings = dataExportSettings,
                        };
                        global::ChronoTrace.ProfilingInternals.Settings.ProfilingSettingsProvider.UpdateSettings(settings);
                    }

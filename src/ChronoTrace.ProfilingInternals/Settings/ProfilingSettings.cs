@@ -1,4 +1,5 @@
 using ChronoTrace.ProfilingInternals.Protection;
+using ChronoTrace.ProfilingInternals.Settings.DataExport;
 
 namespace ChronoTrace.ProfilingInternals.Settings;
 
@@ -10,9 +11,9 @@ namespace ChronoTrace.ProfilingInternals.Settings;
 public sealed class ProfilingSettings
 {
     /// <summary>
-    /// Marks the location where traces are output.
+    /// Data export configuration.
     /// </summary>
-    public required string? OutputPath { get; init; }
+    public required IDataExportSettings DataExportSettings { get; init; }
 
     /// <summary>
     /// Static factory method which provides the default settings.
@@ -21,6 +22,9 @@ public sealed class ProfilingSettings
     [LibraryUsage]
     public static ProfilingSettings Default => new ProfilingSettings
     {
-        OutputPath = null,
+        DataExportSettings = new JsonExporterSettings
+        {
+            OutputPath = null,
+        },
     };
 }

@@ -31,5 +31,10 @@ internal static class Constants
         /// Roslyn analyzer config option name for the library version.
         /// </summary>
         internal const string PackageVersion = "build_property.PackageVersion";
+
+        /// <summary>
+        /// Roslyn analyzer config option name for the library version.
+        /// </summary>
+        internal const string SourceGenerationToggle = "build_property.ChronoTraceSourceGenerationEnabled";
     }
 }
