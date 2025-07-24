@@ -7,6 +7,7 @@ using ChronoTrace.SourceGenerators.SourceGenerator.NameProviders;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static ChronoTrace.SourceGenerators.SourceGenerationGuard;
 
 namespace ChronoTrace.SourceGenerators;
 
@@ -20,6 +21,7 @@ public class InterceptorGenerator : IIncrementalGenerator
         ConfigureDependencies(GeneratorDependencies.Default);
         var outputPathProvider = context.AnalyzerConfigOptionsProvider.CreateTraceOutputPathProvider();
         var versionProvider = context.AnalyzerConfigOptionsProvider.CreateVersionProvider();
+        var sourceGenerationToggleProvider = context.AnalyzerConfigOptionsProvider.CreateSourceGenerationToggleProvider();
 
         var trackedMethodInvocations = GroupInvocationsByClass( 
             GroupInvocationsByMethod(
@@ -28,9 +30,15 @@ public class InterceptorGenerator : IIncrementalGenerator
                     SelectAttributedMethods(context.SyntaxProvider))))
             .Combine(versionProvider);
 
-        context.RegisterSourceOutput(versionProvider, GenerateInterceptsLocationAttribute);
-        context.RegisterSourceOutput(outputPathProvider.Combine(versionProvider), GenerateSettingsProvider);
-        context.RegisterSourceOutput(trackedMethodInvocations, GenerateInterceptors);
+        context.RegisterSourceOutput(
+            versionProvider.WithSourceGenerationToggle(sourceGenerationToggleProvider),
+            WhenSourceGenerationEnabled<string>(GenerateInterceptsLocationAttribute));
+        context.RegisterSourceOutput(
+            outputPathProvider.Combine(versionProvider).WithSourceGenerationToggle(sourceGenerationToggleProvider),
+            WhenSourceGenerationEnabled<(string? Left, string Right)>(GenerateSettingsProvider));
+        context.RegisterSourceOutput(
+            trackedMethodInvocations.WithSourceGenerationToggle(sourceGenerationToggleProvider),
+            WhenSourceGenerationEnabled<(ImmutableArray<InterceptableMethodInvocations> Left, string Right)>(GenerateInterceptors));
     }
 
     internal void ConfigureDependencies(GeneratorDependencies dependencies)
