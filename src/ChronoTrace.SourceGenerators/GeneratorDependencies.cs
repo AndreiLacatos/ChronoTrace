@@ -1,11 +1,11 @@
-namespace ChronoTrace.SourceGenerators;
+using ChronoTrace.ProfilingInternals.Compat;
 
-internal sealed class GeneratorDependencies
+namespace ChronoTrace.SourceGenerators
 {
-    internal required TimeProvider TimeProvider { get; init; }
-    
-    internal static GeneratorDependencies Default => new GeneratorDependencies
+    internal sealed class GeneratorDependencies
     {
-        TimeProvider = TimeProvider.System,
-    };
+        internal ITimeProvider TimeProvider { get; set; } = new TimeProvider();
+
+        internal static GeneratorDependencies Default => new GeneratorDependencies();
+    }
 }

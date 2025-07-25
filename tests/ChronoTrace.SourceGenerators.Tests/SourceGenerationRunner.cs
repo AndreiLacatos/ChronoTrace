@@ -1,16 +1,24 @@
 using System.Collections.Immutable;
 using ChronoTrace.Attributes;
 using ChronoTrace.ProfilingInternals;
+using ChronoTrace.ProfilingInternals.Compat;
 using ChronoTrace.SourceGenerators.Analyzers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.Extensions.Time.Testing;
 
 namespace ChronoTrace.SourceGenerators.Tests;
 
 internal static class SourceGenerationRunner
 {
+    private sealed class FakeTimeProvider : ITimeProvider
+    {
+        private DateTimeOffset _time = new DateTimeOffset(2020, 04, 29, 13, 17, 19, TimeSpan.Zero);
+        public DateTimeOffset GetLocalNow() => _time;
+        public DateTimeOffset GetUtcNow() => GetLocalNow();
+        internal void SetUtcNow(DateTimeOffset offset) => _time = offset;
+    }
+
     internal static (GeneratorDriver runResult, ImmutableArray<Diagnostic> diagnostics) Run(
         string source,
         AnalyzerConfigOptionsProvider? optionsProvider = null)
@@ -20,7 +28,7 @@ internal static class SourceGenerationRunner
 
         // list the assemblies that the source code references, add system base dll 
         // and the dll containing the definition of ProfileAttribute
-        var references = Basic.Reference.Assemblies.Net90.References.All.Union( 
+        var references = Basic.Reference.Assemblies.NetStandard21.References.All.Union( 
         [
             MetadataReference.CreateFromFile(typeof(ProfileAttribute).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(ProfilingContext).Assembly.Location),
@@ -38,7 +46,7 @@ internal static class SourceGenerationRunner
         // configure source generator external dependencies
         generator.ConfigureDependencies(new GeneratorDependencies
         {
-            TimeProvider = new FakeTimeProvider(new DateTimeOffset(2020, 04, 29, 13, 17, 19, TimeSpan.Zero)),
+            TimeProvider = new FakeTimeProvider(),
         });
 
         // run the generator against the compilation

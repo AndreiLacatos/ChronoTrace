@@ -1,40 +1,41 @@
-namespace ChronoTrace.SourceGenerators;
-
-/// <summary>
-/// Internal global constants
-/// </summary>
-internal static class Constants
+namespace ChronoTrace.SourceGenerators
 {
     /// <summary>
-    /// Name of the package.
+    /// Internal global constants
     /// </summary>
-    internal const string ChronoTrace = "ChronoTrace";
-
-    /// <summary>
-    /// Fully qualified name of the <c>[Profile]</c> attribute.
-    /// </summary>
-    internal const string ProfileAttribute = "ChronoTrace.Attributes.ProfileAttribute";
-
-    internal static class BuildProperties
+    internal static class Constants
     {
         /// <summary>
-        /// Roslyn analyzer config option name for solution directory.
+        /// Name of the package.
         /// </summary>
-        internal const string SolutionDir = "build_property.SolutionDir";
+        internal const string ChronoTrace = "ChronoTrace";
 
         /// <summary>
-        /// Roslyn analyzer config option name for trace log output path.
+        /// Fully qualified name of the <c>[Profile]</c> attribute.
         /// </summary>
-        internal const string TimingOutputPath = "build_property.ChronoTraceTimingOutput";
+        internal const string ProfileAttribute = "ChronoTrace.Attributes.ProfileAttribute";
 
-        /// <summary>
-        /// Roslyn analyzer config option name for the library version.
-        /// </summary>
-        internal const string PackageVersion = "build_property.PackageVersion";
+        internal static class BuildProperties
+        {
+            /// <summary>
+            /// Roslyn analyzer config option name for solution directory.
+            /// </summary>
+            internal const string SolutionDir = "build_property.SolutionDir";
 
-        /// <summary>
-        /// Roslyn analyzer config option name for the library version.
-        /// </summary>
-        internal const string SourceGenerationToggle = "build_property.ChronoTraceSourceGenerationEnabled";
+            /// <summary>
+            /// Roslyn analyzer config option name for trace log output path.
+            /// </summary>
+            internal const string TimingOutputPath = "build_property.ChronoTraceTimingOutput";
+
+            /// <summary>
+            /// Roslyn analyzer config option name for the library version.
+            /// </summary>
+            internal const string PackageVersion = "build_property.PackageVersion";
+
+            /// <summary>
+            /// Roslyn analyzer config option name for the library version.
+            /// </summary>
+            internal const string SourceGenerationToggle = "build_property.ChronoTraceSourceGenerationEnabled";
+        }
     }
 }

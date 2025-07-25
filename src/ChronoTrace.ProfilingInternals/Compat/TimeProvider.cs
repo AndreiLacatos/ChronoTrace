@@ -10,5 +10,10 @@ namespace ChronoTrace.ProfilingInternals.Compat
         {
             return DateTimeOffset.Now;
         }
+
+        public DateTimeOffset GetUtcNow()
+        {
+            return DateTimeOffset.UtcNow;
+        }
     }
 }

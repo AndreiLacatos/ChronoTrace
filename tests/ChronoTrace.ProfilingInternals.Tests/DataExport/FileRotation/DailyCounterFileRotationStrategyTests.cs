@@ -10,6 +10,7 @@ public class DailyCounterFileRotationStrategyTests : IDisposable
     {
         private DateTimeOffset _time = new DateTimeOffset(2020, 04, 29, 13, 17, 19, TimeSpan.Zero);
         public DateTimeOffset GetLocalNow() => _time;
+        public DateTimeOffset GetUtcNow() => GetLocalNow();
         internal void SetUtcNow(DateTimeOffset offset) => _time = offset;
     }
 

@@ -1,21 +1,23 @@
+using System;
 using ChronoTrace.SourceGenerators.IncrementalValueProviderExtensions;
 using Microsoft.CodeAnalysis;
 
-namespace ChronoTrace.SourceGenerators;
-
-internal static class SourceGenerationGuard
+namespace ChronoTrace.SourceGenerators
 {
-    internal static Action<SourceProductionContext, SourceGenerationToggleWrappedValue<TSource>> WhenSourceGenerationEnabled<TSource>(
-        Action<SourceProductionContext, TSource> action)
+    internal static class SourceGenerationGuard
     {
-        return (spc, val) =>
+        internal static Action<SourceProductionContext, SourceGenerationToggleWrappedValue<TSource>> WhenSourceGenerationEnabled<TSource>(
+            Action<SourceProductionContext, TSource> action)
         {
-            if (val.SourceGenerationToggle is SourceGenerationDisabled)
+            return (spc, val) =>
             {
-                return;
-            }
+                if (val.SourceGenerationToggle is SourceGenerationDisabled)
+                {
+                    return;
+                }
 
-            action(spc, val.Value);
-        };
+                action(spc, val.Value);
+            };
+        }
     }
 }

@@ -1,13 +1,14 @@
-namespace ChronoTrace.SourceGenerators.SourceGenerator.NameProviders;
-
-/// <summary>
-/// Supplies a namespace. Generated code will reside within this namespace.
-/// </summary>
-internal class GeneratedNamespaceProvider
+namespace ChronoTrace.SourceGenerators.SourceGenerator.NameProviders
 {
     /// <summary>
-    /// Retrieves the namespace designated for generated code.
+    /// Supplies a namespace. Generated code will reside within this namespace.
     /// </summary>
-    /// <returns>Namespace name</returns>
-    internal string GetNamespace() => "ProfilingInterceptors";
+    internal class GeneratedNamespaceProvider
+    {
+        /// <summary>
+        /// Retrieves the namespace designated for generated code.
+        /// </summary>
+        /// <returns>Namespace name</returns>
+        internal string GetNamespace() => "ProfilingInterceptors";
+    }
 }

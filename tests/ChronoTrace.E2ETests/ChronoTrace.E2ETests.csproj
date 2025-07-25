@@ -5,11 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <ChronoTraceTimingOutput>$(MSBuildProjectDirectory)\timings\report.json</ChronoTraceTimingOutput>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ChronoTrace" Version="1.0.0" />
+    <PackageReference Include="ChronoTrace" Version="0.598.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
