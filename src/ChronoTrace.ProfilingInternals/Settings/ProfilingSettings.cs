@@ -10,10 +10,13 @@ namespace ChronoTrace.ProfilingInternals.Settings
     [LibraryUsage]
     public sealed class ProfilingSettings
     {
+        private static readonly IDataExportSettings DefaultExportSettings =
+            new JsonExporterSettings { OutputPath = null };
+
         /// <summary>
         /// Data export configuration.
         /// </summary>
-        public IDataExportSettings DataExportSettings { get; set; } = Default.DataExportSettings;
+        public IDataExportSettings DataExportSettings { get; set; } = DefaultExportSettings;
 
         /// <summary>
         /// Static factory method which provides the default settings.
@@ -22,10 +25,7 @@ namespace ChronoTrace.ProfilingInternals.Settings
         [LibraryUsage]
         public static ProfilingSettings Default => new ProfilingSettings
         {
-            DataExportSettings = new JsonExporterSettings
-            {
-                OutputPath = null,
-            },
+            DataExportSettings = DefaultExportSettings,
         };
     }
 }
