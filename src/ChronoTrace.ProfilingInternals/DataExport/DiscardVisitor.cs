@@ -1,16 +1,17 @@
-namespace ChronoTrace.ProfilingInternals.DataExport;
-
-internal sealed class DiscardVisitor : ITraceVisitor
+namespace ChronoTrace.ProfilingInternals.DataExport
 {
-    public void BeginVisit()
+    internal sealed class DiscardVisitor : ITraceVisitor
     {
-    }
+        public void BeginVisit()
+        {
+        }
 
-    public void VisitTrace(Trace trace)
-    {
-    }
+        public void VisitTrace(Trace trace)
+        {
+        }
 
-    public void Complete()
-    {
+        public void Complete()
+        {
+        }
     }
 }

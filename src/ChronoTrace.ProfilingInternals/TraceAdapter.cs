@@ -1,20 +1,21 @@
-using System.Diagnostics;
+using ChronoTrace.ProfilingInternals.Compat;
 using Trace = ChronoTrace.ProfilingInternals.DataExport.Trace;
 
-namespace ChronoTrace.ProfilingInternals;
-
-/// <summary>
-/// An internal utility class responsible for converting <see cref="ProfiledMethodInvocation"/>
-/// objects into <see cref="Trace"/> objects.
-/// </summary>
-internal static class TraceAdapter
+namespace ChronoTrace.ProfilingInternals
 {
-    internal static Trace Adapt(ProfiledMethodInvocation invocation)
+    /// <summary>
+    /// An internal utility class responsible for converting <see cref="ProfiledMethodInvocation"/>
+    /// objects into <see cref="Trace"/> objects.
+    /// </summary>
+    internal static class TraceAdapter
     {
-        return new Trace
+        internal static Trace Adapt(ProfiledMethodInvocation invocation)
         {
-            MethodName = invocation.MethodName,
-            ExecutionTime = Stopwatch.GetElapsedTime(invocation.InvocationTick, invocation.ReturnTick!.Value),
-        };
+            return new Trace
+            {
+                MethodName = invocation.MethodName,
+                ExecutionTime = StopwatchExtensions.GetElapsedTime(invocation.InvocationTick, invocation.ReturnTick!.Value),
+            };
+        }
     }
 }

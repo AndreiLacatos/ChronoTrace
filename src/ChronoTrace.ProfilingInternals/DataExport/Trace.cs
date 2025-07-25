@@ -1,17 +1,20 @@
-namespace ChronoTrace.ProfilingInternals.DataExport;
+using System;
 
-/// <summary>
-/// Encapsulate a single trace collected during runtime.
-/// </summary>
-internal readonly struct Trace
+namespace ChronoTrace.ProfilingInternals.DataExport
 {
     /// <summary>
-    /// Name of the traced method.
+    /// Encapsulate a single trace collected during runtime.
     /// </summary>
-    internal required string MethodName { get; init; }
+    internal struct Trace
+    {
+        /// <summary>
+        /// Name of the traced method.
+        /// </summary>
+        internal string MethodName { get; set; }
 
-    /// <summary>
-    /// Measured execution time.
-    /// </summary>
-    internal required TimeSpan ExecutionTime { get; init; }
+        /// <summary>
+        /// Measured execution time.
+        /// </summary>
+        internal TimeSpan ExecutionTime { get; set; }
+    }
 }

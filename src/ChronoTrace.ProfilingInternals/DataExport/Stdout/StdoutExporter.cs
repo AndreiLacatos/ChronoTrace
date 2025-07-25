@@ -1,46 +1,50 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
-namespace ChronoTrace.ProfilingInternals.DataExport.Stdout;
-
-/// <summary>
-/// An internal implementation of <see cref="ITraceVisitor"/> that collects trace data
-/// and outputs it as text to stdout.
-/// </summary>
-internal sealed class StdoutExporter : ITraceVisitor
+namespace ChronoTrace.ProfilingInternals.DataExport.Stdout
 {
-    private IList<Trace>? _traces;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+    /// <summary>
+    /// An internal implementation of <see cref="ITraceVisitor"/> that collects trace data
+    /// and outputs it as text to stdout.
+    /// </summary>
+    internal sealed class StdoutExporter : ITraceVisitor
     {
-        WriteIndented = true,
-    };
-
-    public void BeginVisit()
-    {
-        _traces = new List<Trace>();
-    }
-
-    public void VisitTrace(Trace trace)
-    {
-        _traces?.Add(trace);
-    }
-
-    public void Complete()
-    {
-        var sb = new StringBuilder();
-        foreach (var trace in _traces ?? Enumerable.Empty<Trace>())
+        private IList<Trace>? _traces;
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
         {
-            var totalMinutes = (int)trace.ExecutionTime.TotalMinutes;
-            var seconds = trace.ExecutionTime.Seconds;
-            var milliseconds = trace.ExecutionTime.Milliseconds;
+            WriteIndented = true,
+        };
 
-            sb
-                .Append(trace.MethodName)
-                .Append(": ")
-                .Append($"{totalMinutes:D2}:{seconds:D2}.{milliseconds:D3}")
-                .AppendLine();
+        public void BeginVisit()
+        {
+            _traces = new List<Trace>();
         }
 
-        Console.WriteLine(sb.ToString());
+        public void VisitTrace(Trace trace)
+        {
+            _traces?.Add(trace);
+        }
+
+        public void Complete()
+        {
+            var sb = new StringBuilder();
+            foreach (var trace in _traces ?? Enumerable.Empty<Trace>())
+            {
+                var totalMinutes = (int)trace.ExecutionTime.TotalMinutes;
+                var seconds = trace.ExecutionTime.Seconds;
+                var milliseconds = trace.ExecutionTime.Milliseconds;
+
+                sb
+                    .Append(trace.MethodName)
+                    .Append(": ")
+                    .Append($"{totalMinutes:D2}:{seconds:D2}.{milliseconds:D3}")
+                    .AppendLine();
+            }
+
+            Console.WriteLine(sb.ToString());
+        }
     }
 }

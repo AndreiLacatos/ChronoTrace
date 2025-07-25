@@ -1,6 +1,7 @@
-namespace ChronoTrace.ProfilingInternals.DataExport.FileRotation;
-
-internal interface IFileRotationStrategy
+namespace ChronoTrace.ProfilingInternals.DataExport.FileRotation
 {
-    string RotateName(string parentDirectory, string baseFileName);
+    internal interface IFileRotationStrategy
+    {
+        string RotateName(string parentDirectory, string baseFileName);
+    }
 }

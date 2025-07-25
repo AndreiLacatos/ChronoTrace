@@ -1,26 +1,30 @@
-namespace ChronoTrace.ProfilingInternals.DataExport.Json;
+using System.IO;
+using ChronoTrace.ProfilingInternals.Compat;
 
-/// <summary>
-/// An internal implementation of <see cref="IExportDirectoryProvider"/> that determines
-/// the export directory from a given path string configured via a build property.
-/// </summary>
-internal sealed class BuildPropertyExportDirectoryProvider : IExportDirectoryProvider
+namespace ChronoTrace.ProfilingInternals.DataExport.Json
 {
-    private readonly string _path;
-
-    internal BuildPropertyExportDirectoryProvider(string path)
+    /// <summary>
+    /// An internal implementation of <see cref="IExportDirectoryProvider"/> that determines
+    /// the export directory from a given path string configured via a build property.
+    /// </summary>
+    internal sealed class BuildPropertyExportDirectoryProvider : IExportDirectoryProvider
     {
-        _path = path;
-    }
+        private readonly string _path;
 
-    public string GetExportDirectory()
-    {
-        if (Path.EndsInDirectorySeparator(_path))
+        internal BuildPropertyExportDirectoryProvider(string path)
         {
-            return _path;
+            _path = path;
         }
 
-        var directorySeparatorIndex = _path.LastIndexOf(Path.DirectorySeparatorChar);
-        return directorySeparatorIndex > 0 ? _path[..directorySeparatorIndex] : string.Empty;
+        public string GetExportDirectory()
+        {
+            if (PathExtensions.EndsInDirectorySeparator(_path))
+            {
+                return _path;
+            }
+
+            var directorySeparatorIndex = _path.LastIndexOf(Path.DirectorySeparatorChar);
+            return directorySeparatorIndex > 0 ? _path[..directorySeparatorIndex] : string.Empty;
+        }
     }
 }

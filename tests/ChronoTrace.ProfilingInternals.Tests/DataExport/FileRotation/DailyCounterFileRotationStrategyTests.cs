@@ -1,18 +1,25 @@
+using ChronoTrace.ProfilingInternals.Compat;
 using ChronoTrace.ProfilingInternals.DataExport.FileRotation;
-using Microsoft.Extensions.Time.Testing;
 using Shouldly;
 
 namespace ChronoTrace.ProfilingInternals.Tests.DataExport.FileRotation;
 
 public class DailyCounterFileRotationStrategyTests : IDisposable
 {
+    private sealed class FakeTimeProvider : ITimeProvider
+    {
+        private DateTimeOffset _time = new DateTimeOffset(2020, 04, 29, 13, 17, 19, TimeSpan.Zero);
+        public DateTimeOffset GetLocalNow() => _time;
+        internal void SetUtcNow(DateTimeOffset offset) => _time = offset;
+    }
+
     private readonly FakeTimeProvider _timeProvider;
     private readonly DailyCounterFileRotationStrategy _strategy;
     private readonly string _tempDirectory;
 
     public DailyCounterFileRotationStrategyTests()
     {
-        _timeProvider = new FakeTimeProvider(new DateTimeOffset(2020, 04, 29, 13, 17, 19, TimeSpan.Zero));
+        _timeProvider = new FakeTimeProvider();
         _strategy = new DailyCounterFileRotationStrategy(_timeProvider);
         _tempDirectory = Path.Combine(Path.GetTempPath(), $"ChronoTraceTests_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_tempDirectory);

@@ -1,45 +1,48 @@
+using System.IO;
+using ChronoTrace.ProfilingInternals.Compat;
 using ChronoTrace.ProfilingInternals.DataExport.FileRotation;
 using ChronoTrace.ProfilingInternals.Settings;
 using ChronoTrace.ProfilingInternals.Settings.DataExport;
 
-namespace ChronoTrace.ProfilingInternals.DataExport.Json;
-
-/// <summary>
-/// An internal factory responsible for creating and configuring instances of <see cref="JsonExporter"/>.
-/// It uses <see cref="ProfilingSettings"/> to determine the appropriate directory and file name providers.
-/// </summary>
-internal static class JsonExporterFactory
+namespace ChronoTrace.ProfilingInternals.DataExport.Json
 {
     /// <summary>
-    /// Creates and configures a <see cref="JsonExporter"/> based on the provided profiling settings.
+    /// An internal factory responsible for creating and configuring instances of <see cref="JsonExporter"/>.
+    /// It uses <see cref="ProfilingSettings"/> to determine the appropriate directory and file name providers.
     /// </summary>
-    /// <param name="settings">The <see cref="ProfilingSettings"/> containing configuration,
-    /// particularly the <see cref="JsonExporterSettings.OutputPath"/>.</param>
-    /// <returns>A fully configured <see cref="JsonExporter"/> instance.</returns>
-    internal static JsonExporter MakeJsonExporter(JsonExporterSettings settings)
+    internal static class JsonExporterFactory
     {
-        var fileRotation = new DailyCounterFileRotationStrategy(TimeProvider.System);
-        if (string.IsNullOrWhiteSpace(settings.OutputPath))
+        /// <summary>
+        /// Creates and configures a <see cref="JsonExporter"/> based on the provided profiling settings.
+        /// </summary>
+        /// <param name="settings">The <see cref="ProfilingSettings"/> containing configuration,
+        /// particularly the <see cref="JsonExporterSettings.OutputPath"/>.</param>
+        /// <returns>A fully configured <see cref="JsonExporter"/> instance.</returns>
+        internal static JsonExporter MakeJsonExporter(JsonExporterSettings settings)
         {
-            return new JsonExporter(
-                new StaticExportDirectoryProvider(),
-                new StaticJsonFileNameProvider(),
-                fileRotation);
-        }
+            var fileRotation = new DailyCounterFileRotationStrategy(new TimeProvider());
+            if (string.IsNullOrWhiteSpace(settings.OutputPath))
+            {
+                return new JsonExporter(
+                    new StaticExportDirectoryProvider(),
+                    new StaticJsonFileNameProvider(),
+                    fileRotation);
+            }
 
-        var directoryProvider = new BuildPropertyExportDirectoryProvider(settings.OutputPath);
-        IJsonFileNameProvider fileNameProvider;
+            var directoryProvider = new BuildPropertyExportDirectoryProvider(settings.OutputPath);
+            IJsonFileNameProvider fileNameProvider;
 
-        if (Path.EndsInDirectorySeparator(settings.OutputPath) 
-            || string.IsNullOrEmpty(Path.GetFileName(settings.OutputPath)))
-        {
-            fileNameProvider = new StaticJsonFileNameProvider();
-        }
-        else
-        {
-            fileNameProvider = new BuildPropertyJsonFileNameProvider(settings.OutputPath);
-        }
+            if (PathExtensions.EndsInDirectorySeparator(settings.OutputPath) 
+                || string.IsNullOrEmpty(Path.GetFileName(settings.OutputPath)))
+            {
+                fileNameProvider = new StaticJsonFileNameProvider();
+            }
+            else
+            {
+                fileNameProvider = new BuildPropertyJsonFileNameProvider(settings.OutputPath);
+            }
 
-        return new JsonExporter(directoryProvider, fileNameProvider, fileRotation);
+            return new JsonExporter(directoryProvider, fileNameProvider, fileRotation);
+        }
     }
 }

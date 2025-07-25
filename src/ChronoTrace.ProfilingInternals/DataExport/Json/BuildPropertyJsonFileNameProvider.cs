@@ -1,20 +1,23 @@
-namespace ChronoTrace.ProfilingInternals.DataExport.Json;
+using System.IO;
 
-/// <summary>
-/// An internal implementation of <see cref="IJsonFileNameProvider"/> that extracts
-/// the JSON file name from the full path string configured via a build property.
-/// </summary>
-internal sealed class BuildPropertyJsonFileNameProvider : IJsonFileNameProvider
+namespace ChronoTrace.ProfilingInternals.DataExport.Json
 {
-    private readonly string _path;
-
-    internal BuildPropertyJsonFileNameProvider(string path)
+    /// <summary>
+    /// An internal implementation of <see cref="IJsonFileNameProvider"/> that extracts
+    /// the JSON file name from the full path string configured via a build property.
+    /// </summary>
+    internal sealed class BuildPropertyJsonFileNameProvider : IJsonFileNameProvider
     {
-        _path = path;
-    }
+        private readonly string _path;
 
-    public string GetJsonFileName()
-    {
-        return Path.GetFileName(_path);
+        internal BuildPropertyJsonFileNameProvider(string path)
+        {
+            _path = path;
+        }
+
+        public string GetJsonFileName()
+        {
+            return Path.GetFileName(_path);
+        }
     }
 }
