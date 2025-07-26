@@ -13,7 +13,7 @@ namespace ChronoTrace.ProfilingInternals.DataExport.Json
     /// </summary>
     internal sealed class JsonExporter : ITraceVisitor
     {
-        private TimingReport? _timingReport;
+        private TimingReport _timingReport;
         private readonly IExportDirectoryProvider _exportDirectoryProvider;
         private readonly IJsonFileNameProvider _jsonFileNameProvider;
         private readonly IFileRotationStrategy _fileRotator;
@@ -49,7 +49,7 @@ namespace ChronoTrace.ProfilingInternals.DataExport.Json
                 MethodName = trace.MethodName,
                 ExecutionTime = trace.ExecutionTime,
             };
-            _timingReport!.MethodTimings.Add(timing);
+            _timingReport.MethodTimings.Add(timing);
         }
 
         public void Complete()

@@ -9,12 +9,15 @@ namespace ChronoTrace.ProfilingInternals.DataExport
     {
         internal static ITraceVisitor MakeTraceVisitor(ProfilingSettings settings)
         {
-            return settings.DataExportSettings switch
+            switch (settings.DataExportSettings)
             {
-                JsonExporterSettings jsonExporterSettings => JsonExporterFactory.MakeJsonExporter(jsonExporterSettings),
-                StdoutExportSettings _ => new StdoutExporter(),
-                _ => new DiscardVisitor(),
-            };
+                case JsonExporterSettings jsonExporterSettings:
+                    return JsonExporterFactory.MakeJsonExporter(jsonExporterSettings);
+                case StdoutExportSettings _:
+                    return new StdoutExporter();
+                default:
+                    return new DiscardVisitor();
+            }
         }
     }
 }

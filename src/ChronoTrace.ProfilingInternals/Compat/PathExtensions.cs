@@ -19,7 +19,7 @@ namespace ChronoTrace.ProfilingInternals.Compat
                 return false;
             }
 
-            return path[^1] == Path.DirectorySeparatorChar;
+            return path[path.Length - 1] == Path.DirectorySeparatorChar;
         }
     }
 }

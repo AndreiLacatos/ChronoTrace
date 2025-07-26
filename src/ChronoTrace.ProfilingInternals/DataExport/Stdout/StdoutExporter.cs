@@ -11,7 +11,7 @@ namespace ChronoTrace.ProfilingInternals.DataExport.Stdout
     /// </summary>
     internal sealed class StdoutExporter : ITraceVisitor
     {
-        private IList<Trace>? _traces;
+        private IList<Trace> _traces;
 
         public void BeginVisit()
         {

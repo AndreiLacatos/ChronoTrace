@@ -14,7 +14,7 @@ namespace ChronoTrace.ProfilingInternals
             return new Trace
             {
                 MethodName = invocation.MethodName,
-                ExecutionTime = StopwatchExtensions.GetElapsedTime(invocation.InvocationTick, invocation.ReturnTick!.Value),
+                ExecutionTime = StopwatchExtensions.GetElapsedTime(invocation.InvocationTick, invocation.ReturnTick.Value),
             };
         }
     }

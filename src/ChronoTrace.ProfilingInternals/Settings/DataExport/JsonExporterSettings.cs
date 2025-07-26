@@ -8,6 +8,6 @@ namespace ChronoTrace.ProfilingInternals.Settings.DataExport
         /// <summary>
         /// Marks the location where traces are output.
         /// </summary>
-        public string? OutputPath { get; set; }
+        public string OutputPath { get; set; }
     }
 }

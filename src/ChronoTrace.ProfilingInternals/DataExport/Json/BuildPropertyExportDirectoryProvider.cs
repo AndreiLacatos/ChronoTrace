@@ -24,7 +24,7 @@ namespace ChronoTrace.ProfilingInternals.DataExport.Json
             }
 
             var directorySeparatorIndex = _path.LastIndexOf(Path.DirectorySeparatorChar);
-            return directorySeparatorIndex > 0 ? _path[..directorySeparatorIndex] : string.Empty;
+            return directorySeparatorIndex > 0 ? _path.Substring(directorySeparatorIndex) : string.Empty;
         }
     }
 }

@@ -23,7 +23,7 @@ namespace ChronoTrace.ProfilingInternals
     [LibraryUsage]
     public sealed class ProfilingContextAccessor
     {
-        private static readonly AsyncLocal<ProfilingContext?> Context = new AsyncLocal<ProfilingContext?>();
+        private static readonly AsyncLocal<ProfilingContext> Context = new AsyncLocal<ProfilingContext>();
 
         /// <summary>
         /// Gets the <see cref="ProfilingContext"/> for the current profiling scope.
@@ -42,7 +42,7 @@ namespace ChronoTrace.ProfilingInternals
             get
             {
                 var settings = ProfilingSettingsProvider.GetSettings();
-                Context.Value ??= new ProfilingContext(TraceVisitorFactory.MakeTraceVisitor(settings));
+                Context.Value = Context.Value ?? new ProfilingContext(TraceVisitorFactory.MakeTraceVisitor(settings));
                 return Context.Value;
             }
         }
