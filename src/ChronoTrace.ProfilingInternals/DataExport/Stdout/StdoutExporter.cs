@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 
 namespace ChronoTrace.ProfilingInternals.DataExport.Stdout
 {
@@ -13,10 +12,6 @@ namespace ChronoTrace.ProfilingInternals.DataExport.Stdout
     internal sealed class StdoutExporter : ITraceVisitor
     {
         private IList<Trace>? _traces;
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-        };
 
         public void BeginVisit()
         {
