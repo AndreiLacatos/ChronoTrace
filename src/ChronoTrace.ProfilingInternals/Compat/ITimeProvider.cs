@@ -12,11 +12,5 @@ namespace ChronoTrace.ProfilingInternals.Compat
         /// </summary>
         /// <returns>Local time</returns>
         DateTimeOffset GetLocalNow();
-
-        /// <summary>
-        /// Provides the current date as time in the UTC time zone
-        /// </summary>
-        /// <returns>Universal time</returns>
-        DateTimeOffset GetUtcNow();
     }
 }

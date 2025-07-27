@@ -1,19 +1,16 @@
 using System;
+using ChronoTrace.ProfilingInternals.Protection;
 
 namespace ChronoTrace.ProfilingInternals.Compat
 {
     /// <inheritdoc/>
-    internal sealed class TimeProvider : ITimeProvider
+    [LibraryUsage]
+    public sealed class TimeProvider : ITimeProvider
     {
         /// <inheritdoc/>
         public DateTimeOffset GetLocalNow()
         {
             return DateTimeOffset.Now;
-        }
-
-        public DateTimeOffset GetUtcNow()
-        {
-            return DateTimeOffset.UtcNow;
         }
     }
 }

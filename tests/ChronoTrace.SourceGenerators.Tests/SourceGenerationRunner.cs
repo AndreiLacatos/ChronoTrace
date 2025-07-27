@@ -1,24 +1,17 @@
 using System.Collections.Immutable;
 using ChronoTrace.Attributes;
 using ChronoTrace.ProfilingInternals;
-using ChronoTrace.ProfilingInternals.Compat;
 using ChronoTrace.SourceGenerators.Analyzers;
+using ChronoTrace.SourceGenerators.Compat;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using NSubstitute;
 
 namespace ChronoTrace.SourceGenerators.Tests;
 
 internal static class SourceGenerationRunner
 {
-    private sealed class FakeTimeProvider : ITimeProvider
-    {
-        private DateTimeOffset _time = new DateTimeOffset(2020, 04, 29, 13, 17, 19, TimeSpan.Zero);
-        public DateTimeOffset GetLocalNow() => _time;
-        public DateTimeOffset GetUtcNow() => GetLocalNow();
-        internal void SetUtcNow(DateTimeOffset offset) => _time = offset;
-    }
-
     internal static (GeneratorDriver runResult, ImmutableArray<Diagnostic> diagnostics) Run(
         string source,
         AnalyzerConfigOptionsProvider? optionsProvider = null)
@@ -44,9 +37,11 @@ internal static class SourceGenerationRunner
         var generator = new InterceptorGenerator();
 
         // configure source generator external dependencies
+        var timeProvider = Substitute.For<IBuildTimeProvider>();
+        timeProvider.GetUtcNow().Returns(new DateTimeOffset(2020, 04, 29, 13, 17, 19, TimeSpan.Zero));
         generator.ConfigureDependencies(new GeneratorDependencies
         {
-            TimeProvider = new FakeTimeProvider(),
+            TimeProvider = timeProvider,
         });
 
         // run the generator against the compilation

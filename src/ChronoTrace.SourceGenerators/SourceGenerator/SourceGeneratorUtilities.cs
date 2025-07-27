@@ -1,6 +1,6 @@
 using System;
 using System.Text;
-using ChronoTrace.ProfilingInternals.Compat;
+using ChronoTrace.SourceGenerators.Compat;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static System.String;
@@ -18,11 +18,11 @@ namespace ChronoTrace.SourceGenerators.SourceGenerator
     /// </remarks>
     internal class SourceGeneratorUtilities
     {
-        private readonly ITimeProvider _timeProvider;
+        private readonly IBuildTimeProvider _timeProvider;
         private readonly string _version;
 
         internal SourceGeneratorUtilities(
-            ITimeProvider timeProvider,
+            IBuildTimeProvider timeProvider,
             string version)
         {
             _timeProvider = timeProvider;

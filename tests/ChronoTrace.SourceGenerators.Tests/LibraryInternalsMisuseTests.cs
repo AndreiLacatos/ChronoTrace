@@ -85,4 +85,23 @@ public class LibraryInternalsMisuseTests
             d.GetMessage(null).StartsWith("'ProfilingContext.CollectTraces' is for internal use")
         );
     }
+
+    [Fact]
+    public void TimeProvider_ShouldGenerateCompilerWarnings()
+    {
+        var source = 
+            """
+            using ChronoTrace.ProfilingInternals.Compat;
+                        
+            var _ = new TimeProvider();
+            """;
+
+        var (_, diagnostics) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+
+        diagnostics.Length.ShouldBe(1);
+        diagnostics.ShouldContain(d =>
+            d.Severity == DiagnosticSeverity.Warning &&
+            d.GetMessage(null).StartsWith("'TimeProvider' is for internal use")
+        );
+    }
 }
