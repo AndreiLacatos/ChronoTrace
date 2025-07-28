@@ -23,11 +23,27 @@ public class InterceptorGenerator : IIncrementalGenerator
         var versionProvider = context.AnalyzerConfigOptionsProvider.CreateVersionProvider();
         var sourceGenerationToggleProvider = context.AnalyzerConfigOptionsProvider.CreateSourceGenerationToggleProvider();
 
-        var trackedMethodInvocations = GroupInvocationsByClass( 
-            GroupInvocationsByMethod(
-                SelectTrackedMethodInvocations(
-                    SelectMethodInvocations(context.SyntaxProvider),
-                    SelectAttributedMethods(context.SyntaxProvider))))
+        var traced = SelectTrackedMethodInvocations(
+            SelectMethodInvocations(context.SyntaxProvider),
+            SelectAttributedMethods(context.SyntaxProvider)
+                .Combine(context.CompilationProvider)
+                .Select((data, cancellationToken) =>
+                {
+                    var (methods, compilation) = data;
+
+                    if (methods.IsEmpty)
+                    {
+                        return ImmutableHashSet<ISymbol>.Empty;
+                    }
+
+                    // traverse the call graph
+                    return CollectAllCalledMethods(
+                        methods,
+                        compilation,
+                        cancellationToken);
+                }));
+
+        var trackedMethodInvocations = GroupInvocationsByClass(GroupInvocationsByMethod(traced))
             .Combine(versionProvider);
 
         context.RegisterSourceOutput(
@@ -222,5 +238,88 @@ public class InterceptorGenerator : IIncrementalGenerator
         context.AddSource(
             $"{nameof(ProfilingSettingsProvider)}.g.cs",
             new SourceGeneratorUtilities(_dependencies!.TimeProvider, version).FormatSourceCode(generatedSources));
+    }
+
+    /// <summary>
+    /// Traverses the call graph of a given set of methods to find all reachable methods.
+    /// </summary>
+    /// <param name="initialMethods">The starting set of methods to analyze.</param>
+    /// <param name="compilation">The compilation object, required for semantic analysis.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>An immutable hash set containing all methods that are called directly or
+    /// indirectly by the initial set of methods, including the initial methods themselves.</returns>
+    private static ImmutableHashSet<ISymbol> CollectAllCalledMethods(
+        ImmutableHashSet<ISymbol> initialMethods,
+        Compilation compilation,
+        CancellationToken cancellationToken)
+    {
+        // holds methods whose bodies still need to be scanned for further method calls
+        var methodsToProcess = new Queue<IMethodSymbol>();
+
+        // tracks every unique method that was found (avoids duplicate
+        // processing and prevents infinite loops from recursive method calls)
+        var seenMethods = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
+
+        // start with the attributed methods
+        foreach (var symbol in initialMethods)
+        {
+            // sanity check
+            if (symbol is not IMethodSymbol methodSymbol)
+            {
+                continue;
+            }
+
+            // work with the original definition of the method to correctly
+            // handle generics and treat all instantiations as the same method
+            var originalDefinition = methodSymbol.OriginalDefinition;
+
+            // if the method has not been encountered yet, enqueue it for processing
+            if (seenMethods.Add(originalDefinition))
+            {
+                methodsToProcess.Enqueue(originalDefinition);
+            }
+        }
+
+        // dequeue items and process them
+        while (methodsToProcess.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var currentMethod = methodsToProcess.Dequeue();
+
+            // find where the method is declared in the source code
+            foreach (var syntaxRef in currentMethod.DeclaringSyntaxReferences)
+            {
+                var methodSyntaxNode = syntaxRef.GetSyntax(cancellationToken);
+
+                // the semantic model is needed to process its syntax tree
+                var semanticModel = compilation.GetSemanticModel(methodSyntaxNode.SyntaxTree);
+
+                // find every method call within the body of the current method and enqueue them for later processing
+                var methodCalls = methodSyntaxNode.DescendantNodes().OfType<InvocationExpressionSyntax>();
+                foreach (var invocation in methodCalls)
+                {
+                    // use the semantic model to determine exactly which method is being called
+                    var symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken);
+
+                    // sanity check
+                    if (symbolInfo.Symbol is not IMethodSymbol calledMethodSymbol)
+                    {
+                        continue;
+                    }
+
+                    var originalDefinition = calledMethodSymbol.OriginalDefinition;
+
+                    // enqueue for future processing if the method has not been seen yet
+                    if (seenMethods.Add(originalDefinition))
+                    {
+                        methodsToProcess.Enqueue(originalDefinition);
+                    }
+                }
+            }
+        }
+
+        // return the complete set of discovered methods
+        return seenMethods.ToImmutableHashSet(SymbolEqualityComparer.Default)!;
     }
 }
