@@ -253,6 +253,8 @@ public class InterceptorGenerator : IIncrementalGenerator
         Compilation compilation,
         CancellationToken cancellationToken)
     {
+        var userCodeAssembly = compilation.Assembly;
+
         // holds methods whose bodies still need to be scanned for further method calls
         var methodsToProcess = new Queue<IMethodSymbol>();
 
@@ -309,9 +311,12 @@ public class InterceptorGenerator : IIncrementalGenerator
                     }
 
                     var originalDefinition = calledMethodSymbol.OriginalDefinition;
+                    var isUserCode = SymbolEqualityComparer.Default.Equals(
+                        originalDefinition.ContainingAssembly,
+                        userCodeAssembly);
 
                     // enqueue for future processing if the method has not been seen yet
-                    if (seenMethods.Add(originalDefinition))
+                    if (isUserCode && seenMethods.Add(originalDefinition))
                     {
                         methodsToProcess.Enqueue(originalDefinition);
                     }
