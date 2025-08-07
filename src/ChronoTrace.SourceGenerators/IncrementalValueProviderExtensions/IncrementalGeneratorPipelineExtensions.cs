@@ -23,7 +23,7 @@ internal static class IncrementalGeneratorPipelineExtensions
                 .GroupBy(inv => inv.TargetMethod, SymbolEqualityComparer.Default)
                 .Select(group => new InterceptableMethodInvocations(
                     (IMethodSymbol)group.Key!,
-                    group.Select(item => (item.Location, item.InterceptableLocation)),
+                    group.Select(item => (item.Location, item.InterceptableLocation)).DistinctBy(item => item.InterceptableLocation),
                     group.First().Metadata))
             );
     }

@@ -106,6 +106,44 @@ public partial class SynchronousMethodInterceptorTests
     }
 
     [Fact]
+    public async Task RecursiveSyncMethod2_ShouldGenerateInterceptorForEachMethod()
+    {
+        var source = 
+            """
+            public class S
+            {
+                [ChronoTrace.Attributes.Profile(Recursive = true)]
+                public void Recursive(int i = 0)
+                {
+                    if (i > 10)
+                    {
+                        return;
+                    }
+
+                    if (i % 2 == 0)
+                    {
+                        Hello();
+                    }
+                    
+                    System.Console.WriteLine(i);
+                    Recursive(i + 1);
+                }
+
+                public void Hello()
+                {
+                    System.Console.WriteLine("Hello");
+                }
+            }
+
+            var subject = new S();
+            subject.Recursive();
+            """;
+
+        var (driver, _) = SourceGenerationRunner.Run(source, new MockAnalyzerConfigOptionsProvider());
+        await Verify(driver).UseDirectory(TestConstants.SnapshotsDirectory);
+    }
+
+    [Fact]
     public async Task IndirectRecursiveSyncMethod_ShouldGenerateInterceptorForEachMethod()
     {
         var source = 
