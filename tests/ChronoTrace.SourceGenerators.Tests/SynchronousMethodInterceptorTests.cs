@@ -1,6 +1,6 @@
 namespace ChronoTrace.SourceGenerators.Tests;
 
-public class SynchronousMethodInterceptorTests
+public partial class SynchronousMethodInterceptorTests
 {
     [Fact]
     public async Task SyncMethodSingularInvocation_ShouldGenerateSingularSyncInterceptor()

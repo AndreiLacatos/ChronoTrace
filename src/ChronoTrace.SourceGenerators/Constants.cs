@@ -11,6 +11,16 @@ internal static class Constants
     internal const string ChronoTrace = "ChronoTrace";
 
     /// <summary>
+    /// Name of the configuration option that enables recursive tracing.
+    /// </summary>
+    internal const string RecursiveConfig = "Recursive";
+
+    /// <summary>
+    /// String prefix for fully qualified type names.
+    /// </summary>
+    internal const string GlobalNamespacePrefix = "global::";
+
+    /// <summary>
     /// Fully qualified name of the <c>[Profile]</c> attribute.
     /// </summary>
     internal const string ProfileAttribute = "ChronoTrace.Attributes.ProfileAttribute";

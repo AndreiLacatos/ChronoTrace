@@ -31,4 +31,14 @@
       <ProjectReference Include="..\..\src\ChronoTrace.SourceGenerators\ChronoTrace.SourceGenerators.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="SingleLevelTracingTests\snapshots\AsynchronousMethodInterceptorTests.AsyncValueTaskMethodSingularInvocation_ShouldGenerateSingularAsyncValueTaskInterceptor#S_Do_ProfilingInterceptors.g.verified.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="SynchronousMethodInterceptorTests.Recursive.cs">
+        <DependentUpon>SynchronousMethodInterceptorTests.cs</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>
