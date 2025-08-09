@@ -28,6 +28,7 @@ public sealed class ProfilingContext
 {
     private readonly SemaphoreSlim _semaphore;
     private readonly List<ProfiledMethodInvocation> _methodCalls;
+    private readonly Queue<string> _callStack;
     private readonly ITraceVisitor _visitor;
     private ushort _invocationCounter;
     private ushort _pendingCalls;
@@ -39,6 +40,7 @@ public sealed class ProfilingContext
         _invocationCounter = 0;
         _pendingCalls = 0;
         _methodCalls = new List<ProfiledMethodInvocation>(capacity: 100);
+        _callStack = new Queue<string>(capacity: 100);
         _semaphore = new SemaphoreSlim(1, 1);
     }
 
@@ -65,7 +67,9 @@ public sealed class ProfilingContext
         {
             Id = invocationId,
             MethodName = methodName,
+            Caller = _callStack.Count > 0 ? _callStack.Peek() : null,
         };
+        _callStack.Enqueue(methodName);
 
         _methodCalls.Add(pendingCall);
         _semaphore.Release();
@@ -106,6 +110,10 @@ public sealed class ProfilingContext
         }
 
         --_pendingCalls;
+        if (_callStack.Count > 0)
+        {
+            _callStack.Dequeue();
+        }
         _methodCalls[invocationId - 1].ReturnTick = currentTicks;
         _semaphore.Release();
     }

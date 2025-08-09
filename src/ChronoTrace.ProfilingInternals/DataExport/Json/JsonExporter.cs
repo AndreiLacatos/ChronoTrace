@@ -10,21 +10,24 @@ namespace ChronoTrace.ProfilingInternals.DataExport.Json;
 /// </summary>
 internal sealed class JsonExporter : ITraceVisitor
 {
-    private TimingReport? _timingReport;
+    private List<Trace>? _traces;
     private readonly IExportDirectoryProvider _exportDirectoryProvider;
     private readonly IJsonFileNameProvider _jsonFileNameProvider;
     private readonly IFileRotationStrategy _fileRotator;
+    private readonly CallGraphBuilder _callGraphBuilder;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private static readonly SemaphoreSlim FileSystemLock = new SemaphoreSlim(1, 1);
 
     internal JsonExporter(
         IExportDirectoryProvider exportDirectoryProvider,
         IJsonFileNameProvider jsonFileNameProvider,
-        IFileRotationStrategy fileRotator)
+        IFileRotationStrategy fileRotator,
+        CallGraphBuilder callGraphBuilder)
     {
         _exportDirectoryProvider = exportDirectoryProvider;
         _jsonFileNameProvider = jsonFileNameProvider;
         _fileRotator = fileRotator;
+        _callGraphBuilder = callGraphBuilder;
         _jsonSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
@@ -33,25 +36,18 @@ internal sealed class JsonExporter : ITraceVisitor
 
     public void BeginVisit()
     {
-        _timingReport = new TimingReport
-        {
-            MethodTimings = new List<TimingReport.MethodTiming>(),
-        };
+        _traces = new List<Trace>(capacity: 100);
     }
 
     public void VisitTrace(Trace trace)
     {
-        var timing = new TimingReport.MethodTiming
-        {
-            MethodName = trace.MethodName,
-            ExecutionTime = trace.ExecutionTime,
-        };
-        _timingReport!.MethodTimings.Add(timing);
+        _traces?.Add(trace);
     }
 
     public void Complete()
     {
-        var json = JsonSerializer.Serialize(_timingReport, _jsonSerializerOptions);
+        var callGraph = _callGraphBuilder.AssembleCallGraph(_traces ?? []);
+        var json = JsonSerializer.Serialize(TimingReportMapper.Map(callGraph), _jsonSerializerOptions);
         var directory = _exportDirectoryProvider.GetExportDirectory();
         FileSystemLock.Wait();
         try

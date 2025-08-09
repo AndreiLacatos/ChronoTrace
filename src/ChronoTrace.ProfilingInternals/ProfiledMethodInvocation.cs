@@ -20,6 +20,12 @@ internal sealed class ProfiledMethodInvocation
     internal required string MethodName { get; init; }
 
     /// <summary>
+    /// Gets the name of the method that invoked this method. Vacant if the object
+    /// represents the root method of the traces.
+    /// </summary>
+    internal required string? Caller { get; init; }
+
+    /// <summary>
     /// Gets the timestamp (from <see cref="Stopwatch.GetTimestamp()"/>) captured
     /// immediately when this method invocation was recorded (effectively, the start time).
     /// </summary>

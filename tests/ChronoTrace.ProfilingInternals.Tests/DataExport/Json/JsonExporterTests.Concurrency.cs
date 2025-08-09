@@ -34,6 +34,7 @@ public partial class JsonExporterTests
                     {
                         MethodName = $"Method_From_Thread_{threadId}",
                         ExecutionTime = TimeSpan.FromMilliseconds(100 + threadId),
+                        Caller = null,
                     });
                     exporter.Complete();
                 }
@@ -93,7 +94,12 @@ public partial class JsonExporterTests
                 {
                     var failingExporter = JsonExporterFactory.MakeJsonExporter(failingSettings);
                     failingExporter.BeginVisit();
-                    failingExporter.VisitTrace(new Trace { MethodName = "ThisWillFail", ExecutionTime = TimeSpan.Zero });
+                    failingExporter.VisitTrace(new Trace
+                    {
+                        MethodName = "ThisWillFail",
+                        ExecutionTime = TimeSpan.Zero,
+                        Caller = null,
+                    });
                     failingExporter.Complete();
                 }
                 catch (Exception ex)

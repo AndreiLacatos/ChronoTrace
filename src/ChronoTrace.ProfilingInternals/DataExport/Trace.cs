@@ -14,4 +14,10 @@ internal readonly struct Trace
     /// Measured execution time.
     /// </summary>
     internal required TimeSpan ExecutionTime { get; init; }
+
+    /// <summary>
+    /// Gets the name of the method that invoked this method. Vacant if the object
+    /// represents the root method of the traces.
+    /// </summary>
+    internal required string? Caller { get; init; }
 }

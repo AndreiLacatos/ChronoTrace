@@ -22,8 +22,18 @@ public class JsonExporterFactoryTests
         // Use the actual factory to create a fully configured exporter.
         var exporter = JsonExporterFactory.MakeJsonExporter(settings);
 
-        var trace1 = new Trace { MethodName = "Module.A.FastMethod", ExecutionTime = TimeSpan.FromMilliseconds(417) };
-        var trace2 = new Trace { MethodName = "Module.B.SlowMethod", ExecutionTime = TimeSpan.FromMilliseconds(47) };
+        var trace1 = new Trace
+        {
+            MethodName = "Module.A.FastMethod",
+            ExecutionTime = TimeSpan.FromMilliseconds(417),
+            Caller = null,
+        };
+        var trace2 = new Trace
+        {
+            MethodName = "Module.B.SlowMethod",
+            ExecutionTime = TimeSpan.FromMilliseconds(47),
+            Caller = null,
+        };
         
         // Act
         exporter.BeginVisit();
@@ -76,8 +86,18 @@ public class JsonExporterFactoryTests
         // Use the actual factory to create a fully configured exporter.
         var exporter = JsonExporterFactory.MakeJsonExporter(settings);
 
-        var trace1 = new Trace { MethodName = "Module.A.FastMethod", ExecutionTime = TimeSpan.FromMilliseconds(417) };
-        var trace2 = new Trace { MethodName = "Module.B.SlowMethod", ExecutionTime = TimeSpan.FromMilliseconds(47) };
+        var trace1 = new Trace
+        {
+            MethodName = "Module.A.FastMethod",
+            ExecutionTime = TimeSpan.FromMilliseconds(417),
+            Caller = null,
+        };
+        var trace2 = new Trace
+        {
+            MethodName = "Module.B.SlowMethod",
+            ExecutionTime = TimeSpan.FromMilliseconds(47),
+            Caller = null,
+        };
         
         // Act
         exporter.BeginVisit();
@@ -140,8 +160,18 @@ public class JsonExporterFactoryTests
         // Use the actual factory to create a fully configured exporter.
         var exporter = JsonExporterFactory.MakeJsonExporter(settings);
 
-        var trace1 = new Trace { MethodName = "Module.A.FastMethod", ExecutionTime = TimeSpan.FromMilliseconds(417) };
-        var trace2 = new Trace { MethodName = "Module.B.SlowMethod", ExecutionTime = TimeSpan.FromMilliseconds(47) };
+        var trace1 = new Trace
+        {
+            MethodName = "Module.A.FastMethod",
+            ExecutionTime = TimeSpan.FromMilliseconds(417),
+            Caller = null,
+        };
+        var trace2 = new Trace
+        {
+            MethodName = "Module.B.SlowMethod",
+            ExecutionTime = TimeSpan.FromMilliseconds(47),
+            Caller = null,
+        };
 
         // Act
         exporter.BeginVisit();

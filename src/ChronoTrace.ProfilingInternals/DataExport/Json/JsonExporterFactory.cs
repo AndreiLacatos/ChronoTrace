@@ -24,7 +24,8 @@ internal static class JsonExporterFactory
             return new JsonExporter(
                 new StaticExportDirectoryProvider(),
                 new StaticJsonFileNameProvider(),
-                fileRotation);
+                fileRotation,
+                new CallGraphBuilder());
         }
 
         var directoryProvider = new BuildPropertyExportDirectoryProvider(settings.OutputPath);
@@ -40,6 +41,6 @@ internal static class JsonExporterFactory
             fileNameProvider = new BuildPropertyJsonFileNameProvider(settings.OutputPath);
         }
 
-        return new JsonExporter(directoryProvider, fileNameProvider, fileRotation);
+        return new JsonExporter(directoryProvider, fileNameProvider, fileRotation, new CallGraphBuilder());
     }
 }

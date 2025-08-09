@@ -18,7 +18,8 @@ public partial class JsonExporterTests
         var exporter = new JsonExporter(
             directoryProvider,
             Substitute.For<IJsonFileNameProvider>(),
-            Substitute.For<IFileRotationStrategy>());
+            Substitute.For<IFileRotationStrategy>(),
+            new CallGraphBuilder());
         
         exporter.BeginVisit(); // Set up a valid report
 
@@ -42,9 +43,14 @@ public partial class JsonExporterTests
 
         var fileRotator = Substitute.For<IFileRotationStrategy>();
         fileRotator.RotateName(Arg.Any<string>(), Arg.Any<string>()).Returns($"{string.Concat(Enumerable.Repeat("J", 6000))}.json");
-        var exporter = new JsonExporter(directoryProvider, fileNameProvider, fileRotator);
+        var exporter = new JsonExporter(directoryProvider, fileNameProvider, fileRotator, new CallGraphBuilder());
         exporter.BeginVisit();
-        exporter.VisitTrace(new Trace { MethodName = "A", ExecutionTime = TimeSpan.Zero });
+        exporter.VisitTrace(new Trace
+        {
+            MethodName = "A",
+            ExecutionTime = TimeSpan.Zero,
+            Caller = null,
+        });
 
         // Act & Assert
         // File.WriteAllText should throw because the path contains an invalid character.

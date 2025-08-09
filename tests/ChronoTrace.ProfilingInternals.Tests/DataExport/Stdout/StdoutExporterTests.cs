@@ -28,6 +28,7 @@ public class StdoutExporterTests
         {
             MethodName = "Test.Method",
             ExecutionTime = TimeSpan.FromMilliseconds(executionMilliseconds),
+            Caller = null,
         };
         var sw = new StringWriter();
         var originalOut = Console.Out;

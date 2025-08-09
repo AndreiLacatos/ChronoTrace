@@ -14,7 +14,7 @@ internal sealed class TimingReport
     internal sealed class MethodTiming
     {
         /// <summary>
-        /// Gets name of the method that was timed.
+        /// Gets the name of the method that was timed.
         /// </summary>
         [JsonPropertyName("methodName")]
         public required string MethodName { get; init; }
@@ -24,6 +24,11 @@ internal sealed class TimingReport
         /// </summary>
         [JsonPropertyName("executionTime")]
         public required TimeSpan ExecutionTime { get; init; }
+
+        /// <summary>
+        /// Lists the trace data for all methods called by the timed method.
+        /// </summary>
+        public required IEnumerable<MethodTiming> CallGraph { get; init; }
     }
 
     /// <summary>

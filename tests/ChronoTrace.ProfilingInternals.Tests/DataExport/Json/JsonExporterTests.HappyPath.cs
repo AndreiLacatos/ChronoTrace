@@ -31,11 +31,12 @@ public partial class JsonExporterTests
         fileNameProvider.GetJsonFileName().Returns(fakeBaseFileName);
         fileRotator.RotateName(Arg.Any<string>(), Arg.Any<string>()).Returns(fakeRotatedFileName);
         
-        var exporter = new JsonExporter(directoryProvider, fileNameProvider, fileRotator);
+        var exporter = new JsonExporter(directoryProvider, fileNameProvider, fileRotator, new CallGraphBuilder());
         var trace = new Trace
         {
             MethodName = "Test.Method",
             ExecutionTime = TimeSpan.FromMilliseconds(479),
+            Caller = null,
         };
 
         // Act
@@ -60,8 +61,18 @@ public partial class JsonExporterTests
         var settings = new JsonExporterSettings { OutputPath = outputPath };
         var exporter = JsonExporterFactory.MakeJsonExporter(settings);
 
-        var firstCycleTrace = new Trace { MethodName = "FirstCycle.Method", ExecutionTime = TimeSpan.FromMilliseconds(479) };
-        var secondCycleTrace = new Trace { MethodName = "SecondCycle.Method", ExecutionTime = TimeSpan.FromMilliseconds(71) };
+        var firstCycleTrace = new Trace
+        {
+            MethodName = "FirstCycle.Method",
+            ExecutionTime = TimeSpan.FromMilliseconds(479),
+            Caller = null,
+        };
+        var secondCycleTrace = new Trace
+        {
+            MethodName = "SecondCycle.Method",
+            ExecutionTime = TimeSpan.FromMilliseconds(71),
+            Caller = null,
+        };
 
         // Act: First cycle
         exporter.BeginVisit();

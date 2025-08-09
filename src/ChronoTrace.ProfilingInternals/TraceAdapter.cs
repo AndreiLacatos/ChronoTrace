@@ -15,6 +15,7 @@ internal static class TraceAdapter
         {
             MethodName = invocation.MethodName,
             ExecutionTime = Stopwatch.GetElapsedTime(invocation.InvocationTick, invocation.ReturnTick!.Value),
+            Caller = invocation.Caller,
         };
     }
 }
