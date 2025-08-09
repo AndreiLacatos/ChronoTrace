@@ -23,7 +23,7 @@ public class StdoutExporterTests
         string expectedFormattedDuration)
     {
         // Arrange
-        var exporter = new StdoutExporter();
+        var exporter = new StdoutExporter(new CallGraphBuilder());
         var trace = new Trace
         {
             MethodName = "Test.Method",
@@ -42,6 +42,67 @@ public class StdoutExporterTests
         // Assert
         var output = sw.ToString().Trim();
         output.ShouldBe($"Test.Method: {expectedFormattedDuration}");
+
+        // Cleanup
+        Console.SetOut(originalOut);
+    }
+
+    /// <summary>
+    /// Verifies a happy-path of the stdout trace exporter from the perspective of output indentation
+    /// </summary>
+    [Fact]
+    public void Complete_WhenCalled_ShouldOutputTracesInExpectedIndentation()
+    {
+        // Arrange
+        var exporter = new StdoutExporter(new CallGraphBuilder());
+        var traces = new List<Trace>
+        {
+            new Trace
+            {
+                MethodName = "Test.Method",
+                ExecutionTime = TimeSpan.FromMilliseconds(120),
+                Caller = null,
+            },
+            new Trace
+            {
+                MethodName = "Test.Alpha",
+                ExecutionTime = TimeSpan.FromMilliseconds(120),
+                Caller = "Test.Method",
+            },
+            new Trace
+            {
+                MethodName = "Test.Bravo",
+                ExecutionTime = TimeSpan.FromMilliseconds(120),
+                Caller = "Test.Alpha",
+            },
+            new Trace
+            {
+                MethodName = "Test.Charlie",
+                ExecutionTime = TimeSpan.FromMilliseconds(120),
+                Caller = "Test.Method",
+            },
+        };
+        var sw = new StringWriter();
+        var originalOut = Console.Out;
+        Console.SetOut(sw);
+
+        // Act
+        exporter.BeginVisit();
+        foreach (var trace in traces)
+        {
+            exporter.VisitTrace(trace);
+        }
+        exporter.Complete();
+
+        // Assert
+        var output = sw.ToString().Trim();
+        output.ShouldBe(
+            """
+            Test.Method: 00:00.120
+                Test.Alpha: 00:00.120
+                    Test.Bravo: 00:00.120
+                Test.Charlie: 00:00.120
+            """);
 
         // Cleanup
         Console.SetOut(originalOut);

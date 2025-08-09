@@ -9,12 +9,18 @@ namespace ChronoTrace.ProfilingInternals.DataExport.Stdout;
 /// </summary>
 internal sealed class StdoutExporter : ITraceVisitor
 {
-    private IList<Trace>? _traces;
+    private readonly CallGraphBuilder _callGraphBuilder;
+    private List<Trace>? _traces;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
     {
         WriteIndented = true,
     };
 
+    public StdoutExporter(CallGraphBuilder callGraphBuilder)
+    {
+        _callGraphBuilder = callGraphBuilder;
+    }
+    
     public void BeginVisit()
     {
         _traces = new List<Trace>();
@@ -27,20 +33,33 @@ internal sealed class StdoutExporter : ITraceVisitor
 
     public void Complete()
     {
+        var callGraphs = _callGraphBuilder.AssembleCallGraph(_traces ?? []);
         var sb = new StringBuilder();
-        foreach (var trace in _traces ?? Enumerable.Empty<Trace>())
+        foreach (var graph in callGraphs)
         {
-            var totalMinutes = (int)trace.ExecutionTime.TotalMinutes;
-            var seconds = trace.ExecutionTime.Seconds;
-            var milliseconds = trace.ExecutionTime.Milliseconds;
-
-            sb
-                .Append(trace.MethodName)
-                .Append(": ")
-                .Append($"{totalMinutes:D2}:{seconds:D2}.{milliseconds:D3}")
-                .AppendLine();
+            Format(graph.Root, sb);
         }
 
         Console.WriteLine(sb.ToString());
+    }
+
+    private static void Format(CallGraph.Node node, StringBuilder accumulator, int level = 0)
+    {
+        var totalMinutes = (int)node.ExecutionTime.TotalMinutes;
+        var seconds = node.ExecutionTime.Seconds;
+        var milliseconds = node.ExecutionTime.Milliseconds;
+
+        var prefix = new string(' ', 4 * level);
+        accumulator
+            .Append(prefix)
+            .Append(node.MethodName)
+            .Append(": ")
+            .Append($"{totalMinutes:D2}:{seconds:D2}.{milliseconds:D3}")
+            .AppendLine();
+
+        foreach (var child in node.Nodes)
+        {
+            Format(child, accumulator, level + 1);
+        }
     }
 }

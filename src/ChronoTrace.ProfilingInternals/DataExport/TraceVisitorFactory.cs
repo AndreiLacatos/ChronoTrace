@@ -12,7 +12,7 @@ internal static class TraceVisitorFactory
         return settings.DataExportSettings switch
         {
             JsonExporterSettings jsonExporterSettings => JsonExporterFactory.MakeJsonExporter(jsonExporterSettings),
-            StdoutExportSettings => new StdoutExporter(),
+            StdoutExportSettings => new StdoutExporter(new CallGraphBuilder()),
             _ => new DiscardVisitor(),
         };
     }
