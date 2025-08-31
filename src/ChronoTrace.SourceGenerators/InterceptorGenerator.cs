@@ -31,9 +31,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             .FilterTrackedMethodInvocations(attributedMethods)
             .Collect()
             .Combine(adjacentMethodInvocations).Select((data, _) => data.Left.AddRange(data.Right))
-            .SelectMany((x, _) => x)
-            .GroupInvocationsByMethod()
-            .GroupInvocationsByClass()
+            .SelectMany((x, _) => IncrementalGeneratorPipelineExtensions.GroupByClass(x))
             .Combine(versionProvider);
 
         var generator = new TraceGenerator(_dependencies!);
@@ -45,7 +43,7 @@ public class InterceptorGenerator : IIncrementalGenerator
             WhenSourceGenerationEnabled<(string? Left, string Right)>(generator.GenerateSettingsProvider));
         context.RegisterSourceOutput(
             trackedMethodInvocations.WithSourceGenerationToggle(sourceGenerationToggleProvider),
-            WhenSourceGenerationEnabled<(ImmutableArray<InterceptableMethodInvocations> Left, string Right)>(
+            WhenSourceGenerationEnabled<(InterceptableClassMethods Left, string Right)>(
                 generator.GenerateInterceptors));
     }
 

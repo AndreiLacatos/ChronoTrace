@@ -14,6 +14,7 @@ namespace ChronoTrace.SourceGenerators.DataStructures;
 internal sealed record MethodInvocation(
     IMethodSymbol TargetMethod,
     Location Location,
+    string? Caller,
     InterceptableLocation InterceptableLocation,
     MethodMetadata Metadata);
 

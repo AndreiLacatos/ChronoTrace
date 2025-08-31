@@ -38,10 +38,20 @@ internal static class InvocationFilter
 
                     var metadata = new MethodMetadata(targetMethodSymbol.GetMethodType(ctx.SemanticModel.Compilation));
 
-#pragma warning disable RSEXPERIMENTAL002 // / Experimental interceptable location API
+                    var caller = invocationSyntax
+                        .Ancestors()
+                        .OfType<MethodDeclarationSyntax>()
+                        .FirstOrDefault();
+                    
+#pragma warning disable RSEXPERIMENTAL002
                     if (ctx.SemanticModel.GetInterceptableLocation(invocationSyntax, ct) is { } location)
                     {
-                        return new MethodInvocation(targetMethodSymbol, invocationSyntax.GetLocation(), location, metadata);
+                        return new MethodInvocation(
+                            targetMethodSymbol,
+                            invocationSyntax.GetLocation(),
+                            caller?.Identifier.Text,
+                            location,
+                            metadata);
                     }
 #pragma warning restore RSEXPERIMENTAL002
 

@@ -51,7 +51,12 @@ public partial class ProfilingContextTests
     public void SimulateNestedCalls_ContextActionsInvoked_ShouldYieldTraces(params string[] methodNames)
     {
         var names = methodNames.ToList();
-        var ids = names.Select(_profilingContext.BeginMethodProfiling).ToList();
+        var ids = new List<ushort>();
+        for (var i = 0; i < names.Count; i++)
+        {
+            var caller = i == 0 ? null : names[i - 1];
+            ids = names.Select(name => _profilingContext.BeginMethodProfiling(name, caller)).ToList();
+        }
         ids.Count.ShouldBe(names.Count);
         ids.ShouldNotContain((ushort)0);
         ids.ShouldBeUnique();

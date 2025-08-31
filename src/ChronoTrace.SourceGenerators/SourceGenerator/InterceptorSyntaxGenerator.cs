@@ -44,9 +44,10 @@ internal class InterceptorSyntaxGenerator
     /// Generates a complete <see cref="CompilationUnitSyntax"/> for an interceptor class
     /// that targets the specified method invocations.
     /// </summary>
-    /// <param name="invocations">
+    /// <param name="invocationGroups">
     /// A non-empty list of <see cref="InterceptableMethodInvocations"/> object detailing the target methods
-    /// and all their invocation sites that need to be intercepted.
+    /// and all their invocation sites that need to be intercepted. The interceptable invocations are grouped
+    /// by their call site.
     /// </param>
     /// <returns>
     /// A <see cref="CompilationUnitSyntax"/> representing the generated C# source file.
@@ -55,7 +56,7 @@ internal class InterceptorSyntaxGenerator
     /// The name of the generated static extension class is based on the parent method of the first item
     /// in the list of method invocations.
     /// </returns>
-    internal CompilationUnitSyntax MakeMethodInterceptors(ImmutableArray<InterceptableMethodInvocations> invocations)
+    internal CompilationUnitSyntax MakeMethodInterceptors(InterceptableClassMethods classMethods)
     {
         // add necessary using statements
         // add using System.Runtime.CompilerServices; required by InterceptsLocation attribute
@@ -70,17 +71,23 @@ internal class InterceptorSyntaxGenerator
                             IdentifierName(nameof(System.Runtime.CompilerServices))))));
 
         // create a class declaration that contains all interceptors
-        var classDeclaration = MakeClassDeclaration(invocations.First());
+        var classDeclaration = MakeClassDeclaration(classMethods.ClassName);
 
-        var interceptorMethods = new List<MemberDeclarationSyntax>(capacity: invocations.Length);
-        foreach (var invocation in invocations)
+        var interceptorMethods = new List<MemberDeclarationSyntax>(capacity: classMethods.InterceptableInvocations.Count());
+        foreach (var interceptableInvocation in classMethods.InterceptableInvocations)
         {
-            // add a static method which handles target method interception
-            var interceptorMethod = MakeInterceptorHandler(invocation);
+            foreach (var invocation in interceptableInvocation.Invocations)
+            {
+                // add a static method which handles target method interception
+                var interceptorMethod = MakeInterceptorHandler(
+                    interceptableInvocation.TargetMethod,
+                    interceptableInvocation.Methometadata,
+                    invocation.Key);
 
-            // annotate it with InterceptsLocations attribute(s)
-            interceptorMethod = AddInterceptorAttributes(invocation, interceptorMethod);
-            interceptorMethods.Add(interceptorMethod);
+                // annotate it with InterceptsLocations attribute(s)
+                interceptorMethod = AddInterceptorAttributes(invocation, interceptorMethod);
+                interceptorMethods.Add(interceptorMethod);
+            }
         }
 
         // add the method to the class
@@ -98,9 +105,9 @@ internal class InterceptorSyntaxGenerator
         return compilationUnit;
     }
 
-    private ClassDeclarationSyntax MakeClassDeclaration(InterceptableMethodInvocations invocations)
+    private ClassDeclarationSyntax MakeClassDeclaration(string className)
     {
-        var classDeclaration = ClassDeclaration(_interceptorClassNameProvider.GetClassName(invocations.TargetMethod));
+        var classDeclaration = ClassDeclaration(className);
 
         // make it public & static
         classDeclaration = classDeclaration
@@ -111,10 +118,10 @@ internal class InterceptorSyntaxGenerator
         return classDeclaration;
     }
     
-    private MethodDeclarationSyntax MakeInterceptorHandler(InterceptableMethodInvocations invocations)
+    private MethodDeclarationSyntax MakeInterceptorHandler(IMethodSymbol targetMethod, MethodMetadata metadata, string? caller)
     {
         // make its return type the same as the intercepted method
-        var returnTypeSymbol = invocations.TargetMethod.ReturnType;
+        var returnTypeSymbol = targetMethod.ReturnType;
         TypeSyntax returnTypeSyntax;
 
         var symbolDisplayFormat = new SymbolDisplayFormat(
@@ -123,7 +130,7 @@ internal class InterceptorSyntaxGenerator
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters
         );
 
-        if (invocations.TargetMethod.ReturnsVoid)
+        if (targetMethod.ReturnsVoid)
         {
             returnTypeSyntax = PredefinedType(Token(SyntaxKind.VoidKeyword));
         }
@@ -136,14 +143,14 @@ internal class InterceptorSyntaxGenerator
 
         var interceptorMethod = MethodDeclaration(
             returnTypeSyntax,
-            Identifier(_interceptorHandlerNameProvider.GetHandlerName(invocations.TargetMethod)));
+            Identifier(_interceptorHandlerNameProvider.GetHandlerName(targetMethod)));
 
         // make the method public & static, add async modifier if the intercepted call
         // needs to be awaited in the method body
         var methodModifierTokens = TokenList(
             Token(SyntaxKind.PublicKeyword),
             Token(SyntaxKind.StaticKeyword));
-        if (invocations.Metadata.MethodType.IsAsync())
+        if (metadata.MethodType.IsAsync())
         {
             methodModifierTokens = methodModifierTokens.Add(Token(SyntaxKind.AsyncKeyword));
         }
@@ -154,10 +161,10 @@ internal class InterceptorSyntaxGenerator
         var parameters = new List<ParameterSyntax>();
         var syntaxNodeOrTokenList = new List<SyntaxNodeOrToken>();
 
-        if (!invocations.TargetMethod.IsStatic)
+        if (!targetMethod.IsStatic)
         {
             // get the fully qualified name of the containing type, i.e., parent class, of the method being intercepted.
-            var instanceTypeName = invocations.TargetMethod.ContainingType.ToDisplayString(symbolDisplayFormat);
+            var instanceTypeName = targetMethod.ContainingType.ToDisplayString(symbolDisplayFormat);
             parameters.Add(
                 Parameter(Identifier(_variableNameConverter.ToGeneratedVariableName(ProfiledSubjectVariableName)))
                     .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
@@ -166,7 +173,7 @@ internal class InterceptorSyntaxGenerator
         }
 
         // add remaining parameters inherited from the target method
-        foreach (var originalParameter in invocations.TargetMethod.Parameters)
+        foreach (var originalParameter in targetMethod.Parameters)
         {
             // convert original parameter's type symbol to TypeSyntax
             var paramTypeName = originalParameter.Type.ToDisplayString(symbolDisplayFormat);
@@ -258,11 +265,20 @@ internal class InterceptorSyntaxGenerator
                     IdentifierName(nameof(ProfilingContext.BeginMethodProfiling))))
             .WithArgumentList(
                 ArgumentList(
-                    SingletonSeparatedList(
-                        Argument(
-                            LiteralExpression(
-                                SyntaxKind.StringLiteralExpression,
-                                Literal(invocations.TargetMethod.Name))))));
+                    SeparatedList(
+                        new List<ArgumentSyntax>
+                        {
+                            Argument(
+                                LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    Literal(targetMethod.Name))),
+                            Argument(
+                                string.IsNullOrWhiteSpace(caller)
+                                    ? LiteralExpression(SyntaxKind.NullLiteralExpression)
+                                    : LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        Literal(caller))),
+                        })));
 
         // 3. captures the returned invocation ID
         var methodProfilingStart = LocalDeclarationStatement(
@@ -287,7 +303,7 @@ internal class InterceptorSyntaxGenerator
         // intercepted method and pass them to it
         // create a list to hold the ArgumentSyntax nodes
         var arguments = new List<ArgumentSyntax>();
-        foreach (var originalParamSymbol in invocations.TargetMethod.Parameters)
+        foreach (var originalParamSymbol in targetMethod.Parameters)
         {
             // create an argument using the parameter's name.
             var argument = Argument(IdentifierName(originalParamSymbol.Name));
@@ -314,18 +330,18 @@ internal class InterceptorSyntaxGenerator
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     IdentifierName(_variableNameConverter.ToGeneratedVariableName(ProfiledSubjectVariableName)),
-                    IdentifierName(invocations.TargetMethod.Name)
+                    IdentifierName(targetMethod.Name)
                 ))
             .WithArgumentList(
                 ArgumentList(SeparatedList(arguments))
             );
 
-        if (invocations.Metadata.MethodType.IsAsync())
+        if (metadata.MethodType.IsAsync())
         {
             invocation = AwaitExpression(invocation);
         }
 
-        StatementSyntax proxyCall = invocations.Metadata.MethodType.IsVoidType()
+        StatementSyntax proxyCall = metadata.MethodType.IsVoidType()
             ? ExpressionStatement(invocation)
             : ReturnStatement(invocation);
         var tryProxyCallExecution = TryStatement()
@@ -361,19 +377,19 @@ internal class InterceptorSyntaxGenerator
         return interceptorMethod;
     }
 
+#pragma warning disable RSEXPERIMENTAL002
     private MethodDeclarationSyntax AddInterceptorAttributes(
-        InterceptableMethodInvocations invocations,
+        IEnumerable<InterceptableLocation> invocations,
         MethodDeclarationSyntax interceptorMethod)
     {
+#pragma warning restore RSEXPERIMENTAL002
         // create an InterceptsLocation for each invocation location of the target method
         var attributes = new List<AttributeListSyntax>();
-        foreach (var (_, interceptableLocation) in invocations.Locations)
+        foreach (var interceptableLocation in invocations)
         {
             var attribute = MakeInterceptsLocationAttribute(interceptableLocation);
             attributes.Add(
-                AttributeList(
-                    SingletonSeparatedList(attribute)
-                )
+                AttributeList(SingletonSeparatedList(attribute))
             );
         }
 

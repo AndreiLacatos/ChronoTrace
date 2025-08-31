@@ -120,12 +120,22 @@ internal static class CallGraphInspector
                     continue;
                 }
 
+                var caller = invocation
+                    .Ancestors()
+                    .OfType<MethodDeclarationSyntax>()
+                    .FirstOrDefault();
+
                 // capture the invocation location of the method call
                 var metadata = new MethodMetadata(originalDefinition.GetMethodType(semanticModel.Compilation));
-#pragma warning disable RSEXPERIMENTAL002 // / Experimental interceptable location API
+#pragma warning disable RSEXPERIMENTAL002
                 if (semanticModel.GetInterceptableLocation(invocation, cancellationToken) is { } location)
                 {
-                    calledMethods.Add(new MethodInvocation(originalDefinition, invocation.GetLocation(), location, metadata));
+                    calledMethods.Add(new MethodInvocation(
+                        originalDefinition,
+                        invocation.GetLocation(),
+                        caller?.Identifier.Text,
+                        location,
+                        metadata));
                 }
 #pragma warning restore RSEXPERIMENTAL002
 

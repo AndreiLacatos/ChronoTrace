@@ -49,10 +49,11 @@ public sealed class ProfilingContext
     /// This method is called by generated instrumentation code.
     /// </summary>
     /// <param name="methodName">The name of the method being profiled.</param>
+    /// <param name="caller">The name of the method calling the method subject to tracing</param>
     /// <returns>A unique invocation ID for this specific method call instance.</returns>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     [LibraryUsage]
-    public ushort BeginMethodProfiling(string methodName)
+    public ushort BeginMethodProfiling(string methodName, string? caller = null)
     {
         if (string.IsNullOrWhiteSpace(methodName))
         {

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using ChronoTrace.SourceGenerators.DataStructures;
 using Microsoft.CodeAnalysis;
 
@@ -23,7 +24,7 @@ internal static class IncrementalGeneratorPipelineExtensions
                 .GroupBy(inv => inv.TargetMethod, SymbolEqualityComparer.Default)
                 .Select(group => new InterceptableMethodInvocations(
                     (IMethodSymbol)group.Key!,
-                    group.Select(item => (item.Location, item.InterceptableLocation)).DistinctBy(item => item.InterceptableLocation),
+                    group.Select(item => (item.Location, item.Caller, item.InterceptableLocation)).DistinctBy(item => item.InterceptableLocation),
                     group.First().Metadata))
             );
     }
@@ -53,5 +54,63 @@ internal static class IncrementalGeneratorPipelineExtensions
             })
             .Select(static (m, _) => m.ToImmutableArray())
             .Where(static m => !m.IsEmpty);
+    }
+
+    /// <summary>
+    /// Receives the list of interceptable method invocations. Groups invocations based on the call site.
+    /// </summary>
+    /// <param name="allTrackedInvocations">All identified invocations subject to interception</param>
+    /// <returns>Groups of invocations by their call site.</returns>
+    internal static IncrementalValuesProvider<ImmutableArray<IGrouping<string?, InterceptableMethodInvocations>>> GroupInvocationsByCallSite(
+        this IncrementalValuesProvider<ImmutableArray<InterceptableMethodInvocations>> allTrackedInvocations)
+    {
+        return allTrackedInvocations.Select((sealedGroup, _) =>
+        {
+            var flattenedInvocations = sealedGroup.SelectMany(invocationGroup =>
+                invocationGroup.Locations.Select(locationInfo =>
+                    new { locationInfo.Caller, SourceGroup = invocationGroup }
+                )
+            );
+
+            var refinedSubGroups = flattenedInvocations.GroupBy(
+                keySelector: flatItem => flatItem.Caller,
+                elementSelector: flatItem => flatItem.SourceGroup
+            );
+
+            return refinedSubGroups.ToImmutableArray();
+        });
+    }
+
+    internal static ImmutableArray<InterceptableClassMethods> GroupByClass(
+        ImmutableArray<MethodInvocation> invocations)
+    {
+        var methodInvocationsList = invocations
+            .GroupBy(inv => inv.TargetMethod, SymbolEqualityComparer.Default)
+            .Select(group => new
+                {
+                    TargetMethod = (IMethodSymbol)group.Key!,
+                    group.First().Metadata,
+                    Anyad = group
+                        .GroupBy(item => item.Caller, StringComparer.InvariantCultureIgnoreCase)
+            })
+            .ToList();
+
+        var byClass = methodInvocationsList
+            .GroupBy(
+                methodInvocationList => methodInvocationList.TargetMethod.OriginalDefinition.ContainingType,
+                SymbolEqualityComparer.Default)
+            .Select(group => new InterceptableClassMethods
+            (
+                group.Key!.Name,
+                group.Select(something =>
+                {
+                    return new InterceptableMethods(
+                        something.TargetMethod,
+                        something.Metadata,
+                        something.Anyad.Select(g => g.Select(x => x.InterceptableLocation).Distinct().GroupBy(_ => g.Key).First()));
+                })
+            ));
+        
+        return byClass.ToImmutableArray();
     }
 }

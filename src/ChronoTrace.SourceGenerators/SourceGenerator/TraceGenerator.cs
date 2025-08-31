@@ -41,13 +41,13 @@ internal sealed class TraceGenerator
     /// <param name="props">Tuple of the list of method invocations (grouped by their class) and the library version</param>
     internal void GenerateInterceptors(
         SourceProductionContext context,
-        (ImmutableArray<InterceptableMethodInvocations> Left, string Right) props)
+        (InterceptableClassMethods Left, string Right) props)
     {
         var (interceptableInvocation, version) = props;
         var generatedSources = new InterceptorSyntaxGenerator()
             .MakeMethodInterceptors(interceptableInvocation);
         context.AddSource(
-            new GeneratedSourceFileNameProvider().GetHintName(interceptableInvocation.First().TargetMethod),
+            new GeneratedSourceFileNameProvider().GetHintName(interceptableInvocation.InterceptableInvocations.First().TargetMethod),
             new SourceGeneratorUtilities(_dependencies.TimeProvider, version).FormatCompilationUnitSyntax(generatedSources));
     }
 
